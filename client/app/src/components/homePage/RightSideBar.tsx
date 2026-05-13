@@ -9,9 +9,9 @@ type Props = {
 const RightSideBar = ({ selectedUser }: Props) => {
     return selectedUser && (
         <div>
-            <div>
+            <div className="flex flex-col items-center p-4">
                 <Image src={selectedUser.profilePic || assets.avatar_icon || ""} alt="avatar" width={80} height={80}
-                    className="rounded-full object-cover w-20 aspect-[1/1]" />
+                    className="rounded-lg object-cover w-20 aspect-[1/1]" />
                 <h2 className="text-white text-sm  mt-4">{selectedUser.fullName}</h2>
             </div>
         </div>
