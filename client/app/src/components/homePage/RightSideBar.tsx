@@ -1,5 +1,5 @@
 import React from 'react'
-import { User } from '../../assets/assets'
+import { imagesDummyData, User } from '../../assets/assets'
 import Image from 'next/image'
 import assets from '../../assets/assets'
 type Props = {
@@ -18,6 +18,27 @@ const RightSideBar = ({ selectedUser }: Props) => {
                     <p className="w-2 h-2 bg-green-500 rounded-full"></p>
                 </h2>
                 <p className={`py-4 mx-auto text-white text-xs`}>{selectedUser.bio}</p>
+            </div>
+            <hr className="border-gray-400 pt-4" />
+
+            {/* media */}
+            <div>
+                <h2>Media</h2>
+                <div className="overflow-y-scroll px-4 max-h-[300px] grid grid-cols-2 gap-2 mt-2 opacity-80">
+                    {
+                        imagesDummyData.map((img, index) => (
+                            <div key={index} className="cursor-pointer rounded-lg overflow-hidden">
+                                <Image src={img} alt={`media-${index}`} width={100} height={100} />
+                            </div>
+                        ))
+                    }
+                </div>
+            </div>
+            {/* logout */}
+            <div className="p-4 flex justify-center items-center w-full mt-8">
+                <button className=" bg-blue-500 text-white w-full py-2 px-4 rounded-full hover:bg-blue-600">
+                    Logout
+                </button>
             </div>
         </div>
     )
