@@ -125,9 +125,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                                     }
 
-                                    {
-                                        console.log(" format time", msg.createdAt)
-                                    } */}
+                                    */}
                                 </span>
                             </div>
                         </div>
