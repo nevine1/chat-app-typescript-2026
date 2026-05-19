@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Image from "next/image"
 import assets from '../../assets/assets'
+import { useRouter } from 'next/navigation'
 type UserInfo = {
     name: string,
     email: string,
@@ -9,7 +10,8 @@ type UserInfo = {
     bio: string
 }
 
-const Login = (props: UserInfo) => {
+const Login = ({ UserInfo }: { UserInfo: UserInfo }) => {
+    const router = useRouter()
     const [currState, setCurrState] = useState<string>("Sign Up")
     const [isFormSubmitted, setIsFormSubmitted] = useState<boolean>(false)
     const [userInfo, setUserInfo] = useState<UserInfo>({
@@ -25,8 +27,25 @@ const Login = (props: UserInfo) => {
             [name]: value
         }))
     }
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (currState === "Sign Up") {
+            // Handle sign up logic here
+            console.log("Signing up with:", userInfo)
+            if (userInfo.name || userInfo.email || userInfo.password || userInfo.bio) {
+                setIsFormSubmitted(true)
+                router.push('/profile')
+            } else {
+                console.log('user info is', userInfo)
+            }
+        } else {
+            // Handle login logic here
+            console.log("Logging in with:", userInfo)
+        }
+    }
     return (
-        <div className="min-h-screen bg-cover bg-center flex items-center justify-center sm:justify-evenly max-sm:flex-col backdrop-blur-lg">
+        <div className="min-h-screen bg-[#111827] text-white bg-cover bg-center flex items-center justify-center sm:justify-evenly max-sm:flex-col backdrop-blur-lg">
             {/*  left side */}
             <div>
                 <Image
@@ -37,14 +56,15 @@ const Login = (props: UserInfo) => {
             </div>
             {/*  right side */}
 
-            <form action="" className="flex flex-col bg-white/8 bg-opacity-80 backdrop-blur-lg rounded-lg shadow-md px-10 py-8 w-full max-w-md">
-                <h1 className="text-3xl font-bold mb-6">{currState}</h1>
+            <form onSubmit={handleSubmit} className="flex flex-col text-white border border-gray-300    backdrop-blur-lg rounded-lg shadow-md px-10 py-8 w-[80%] max-w-md">
+                <h1 className="text-3xl font-bold text-white mb-6">{currState}</h1>
                 {
                     currState === "Sign Up" && !isFormSubmitted && (
-                        <div className="mb-4 flex flex-col">
-                            <label htmlFor="name" className="block text-gray-700 mb-2">Name</label>
+                        <div className="mb-4 flex flex-col text-white">
+                            <label htmlFor="name" className="block text-gray-700 mb-2 text-white">Name</label>
                             <input type="text"
                                 id="name"
+                                name="name"
                                 required
                                 value={userInfo.name}
                                 onChange={handleChange}
@@ -52,36 +72,39 @@ const Login = (props: UserInfo) => {
                         </div>
                     )
                 }
-                <div className="mb-4 flex flex-col">
-                    <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
+                <div className="mb-4 flex flex-col text-white">
+                    <label htmlFor="email" className="block text-gray-700 mb-2 text-white">Email</label>
                     <input type="email"
                         id="email"
+                        name="email"
                         required
                         value={userInfo.email}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" />
                 </div>
-                <div className="mb-4 flex flex-col">
-                    <label htmlFor="password" className="w-full text-gray-700 mb-2">Password</label>
+                <div className="mb-4 flex flex-col text-white">
+                    <label htmlFor="password" className="w-full text-gray-700 mb-2 text-white">Password</label>
                     <input type="password"
                         id="password"
+                        name="password"
                         required
                         value={userInfo.password}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" />
                 </div>
                 {
-                    currState === "Sign UP" && (
-                        <div className="mb-4 flex flex-col">
-                            <label htmlFor="bio" className="w-full text-gray-700 mb-2">Bio</label>
+                    currState === "Sign Up" && (
+                        <div className="mb-4 flex flex-col text-white">
+                            <label htmlFor="bio" className="w-full text-gray-700 mb-2 text-white">Bio</label>
                             <textarea
                                 id="bio"
+                                name="bio"
                                 required
                                 value={userInfo.bio}
                                 onChange={handleChange}
-                                rows={4}
+                                rows={3}
                                 placeholder='Add a very short bio'
-                                className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" ></textarea>
+                                className="border border-gray-300 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" ></textarea>
                         </div>
                     )
                 }
@@ -90,16 +113,16 @@ const Login = (props: UserInfo) => {
                 </button>
                 <div className="mt-4 text-sm text-gray-600">
                     <input type='checkbox' id='terms' className="mr-2" />
-                    <label htmlFor="terms" className="text-gray-500">I agree to the terms and conditions</label>
+                    <label htmlFor="terms" className="text-white">I agree to the terms and conditions</label>
                 </div>
                 <div>
                     {currState === "Sign Up" ? (
-                        <p className="mt-4 text-sm text-gray-600">
+                        <p className="mt-4 text-sm text-white">
                             Already have an account? <span onClick={() => setCurrState("Login")} className="text-blue-500 cursor-pointer">Login</span>
                         </p>
                     ) : (
                         <p className="mt-4 text-sm text-gray-600">
-                            Don't have an account? <span onClick={() => setCurrState("Sign Up")} className="text-blue-500 cursor-pointer">Sign Up</span>
+                            Do not have an account? <span onClick={() => setCurrState("Sign Up")} className="text-blue-500 cursor-pointer">Sign Up</span>
                         </p>
                     )}
                 </div>
@@ -109,4 +132,4 @@ const Login = (props: UserInfo) => {
     )
 }
 
-export default Login
+export default Login 
