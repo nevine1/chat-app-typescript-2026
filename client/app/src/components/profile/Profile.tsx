@@ -14,7 +14,7 @@ const Profile = (props: Props) => {
     const [bio, setBio] = useState<string>(
         "Hello everyone! I'm Martin, a passionate traveler and food lover..."
     );
-
+    cd
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
