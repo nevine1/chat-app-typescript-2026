@@ -11,6 +11,7 @@
   "dependencies": {
     "-": "^0.0.1",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "D": "^1.0.0",
@@ -18,7 +19,8 @@
     "express": "^5.2.1",
     "json": "^11.0.0",
     "mongoose": "^9.6.2",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
