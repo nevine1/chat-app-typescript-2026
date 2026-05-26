@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import validator from "validator";
-
-import userModel from "../models/userModal.js";
+import { generateToken } from "../lib/utils.ts";
+import User from "../models/userModel.js";
 
 // Create new user
 export const createUser = async (
@@ -40,7 +40,7 @@ export const createUser = async (
         }
 
         // Check if user already exists
-        const existingUser = await userModel.findOne({ email });
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             res.status(409).json({
@@ -51,10 +51,11 @@ export const createUser = async (
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create user
-        const user = await userModel.create({
+        const user = await User.create({
             name,
             email,
             password: hashedPassword,
@@ -62,6 +63,7 @@ export const createUser = async (
             bio,
         });
 
+        const token = generateToken(user._id);
         const newUser = {
             _id: user._id,
             name: user.name,
@@ -70,10 +72,12 @@ export const createUser = async (
             bio: user.bio,
         };
 
+        console.log("New user created:", newUser);
         res.status(201).json({
             success: true,
             message: "User created successfully",
             user: newUser,
+            token,
         });
     } catch (err) {
         console.error(err);

@@ -1,5 +1,8 @@
 import express from 'express'
+import { createUser } from '../controller/userController.ts'
+const userRouter = express.Router()
 
-const router = express.Router()
 
-import userModel from '../models/userModal.js'
+userRouter.post('/createUser', createUser)
+
+export default userRouter

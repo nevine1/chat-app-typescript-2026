@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import connectDB from './lib/db.js'
-
+import userRouter from './routes/uerRoute.ts'
 dotenv.config()
 
 const app = express();
@@ -49,7 +49,8 @@ app.use(express.json({ limit: '10kb' }));
 // Connect to Database
 connectDB();
 
-
+//api routes
+app.use("/api/users", userRouter);
 app.get('/', (req, res) => {
     res.status(200).json({ status: 'healthy' });
 });
