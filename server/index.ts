@@ -3,15 +3,17 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import cookieParser from 'cookie-parser'
 import connectDB from './lib/db.js'
-import userRouter from './routes/uerRoute.ts'
+import userRouter from './routes/userRoute.js'
+
 dotenv.config()
 
 const app = express();
 
 // Helmet helps secure your apps by setting various HTTP headers
 app.use(helmet());
-
+app.use(cookieParser());
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')

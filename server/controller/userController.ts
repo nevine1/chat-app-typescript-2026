@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import validator from "validator";
-import { generateToken } from "../lib/utils.ts";
+import { generateToken } from "../lib/utils.js";
 import User from "../models/userModel.js";
 
-// Create new user
 export const createUser = async (
     req: Request,
     res: Response
@@ -12,7 +11,7 @@ export const createUser = async (
     try {
         const { name, email, password, profilePic, bio } = req.body;
 
-        // Validation
+        // 1. Required fields validation
         if (!name || !email || !password) {
             res.status(400).json({
                 success: false,
@@ -21,8 +20,10 @@ export const createUser = async (
             return;
         }
 
-        // Email validation
-        if (!validator.isEmail(email)) {
+        // Sanitize and validate Email (trims extra spaces & forces lowercase)
+        const sanitizedEmail = email.trim().toLowerCase();
+
+        if (!validator.isEmail(sanitizedEmail)) {
             res.status(400).json({
                 success: false,
                 message: "Invalid email",
@@ -30,7 +31,7 @@ export const createUser = async (
             return;
         }
 
-        // Password strength
+
         if (password.length < 6) {
             res.status(400).json({
                 success: false,
@@ -39,9 +40,8 @@ export const createUser = async (
             return;
         }
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
 
+        const existingUser = await User.findOne({ email: sanitizedEmail });
         if (existingUser) {
             res.status(409).json({
                 success: false,
@@ -50,20 +50,22 @@ export const createUser = async (
             return;
         }
 
-        // Hash password
+        // Hash the password 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create user
+        //  Create and save the new user
         const user = await User.create({
             name,
-            email,
+            email: sanitizedEmail,
             password: hashedPassword,
             profilePic,
             bio,
         });
 
-        const token = generateToken(user._id);
+        //  Generate the JWT token using 
+        const token = generateToken(user._id.toString());
+
         const newUser = {
             _id: user._id,
             name: user.name,
@@ -72,15 +74,103 @@ export const createUser = async (
             bio: user.bio,
         };
 
-        console.log("New user created:", newUser);
+        //  Maximum Security Step: Send the token in an HTTP-Only Cookie
+        res.cookie("token", token, {
+            httpOnly: true, // Blocks XSS attacks (JavaScript cannot touch this cookie)
+            secure: process.env.NODE_ENV === "production", // Cookie only transmits over HTTPS in production
+            sameSite: "strict", // Shields your app against CSRF attacks
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        });
+
+
+        console.log("New user created successfully:", newUser._id);
+
         res.status(201).json({
             success: true,
             message: "User created successfully",
             user: newUser,
-            token,
+            // we don't return the token in the body anymore; it's tucked away safely in the cookie!
         });
+
     } catch (err) {
-        console.error(err);
+        console.error("Error in createUser controller:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+export const signInUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { email, password } = req.body;
+
+
+        if (!email || !password) {
+            res.status(400).json({
+                success: false,
+                message: "Email and password are required",
+            });
+            return;
+        }
+
+
+        const sanitizedEmail = email.trim().toLowerCase();
+
+        //  Database Lookup (Explicitly fetch password if it's selected: false in your schema)
+        const user = await User.findOne({ email: sanitizedEmail }).select("+password +name +profilePic +bio");
+
+        if (!user) {
+            res.status(401).json({
+                success: false,
+                message: "Invalid email or password", // Generic message prevents user enumeration
+            });
+            return;
+        }
+
+        //  Verify the password
+        const matchedPassword = await bcrypt.compare(password, user.password);
+        if (!matchedPassword) {
+            res.status(401).json({
+                success: false,
+                message: "Invalid email or password",
+            });
+            return;
+        }
+
+        //  Generate the JWT token
+        const token = generateToken(user._id.toString());
+
+        //  Send the token in an HTTP-Only Cookie
+        const isProduction = process.env.NODE_ENV === "production";
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: isProduction,
+            // Note: Use 'lax' if frontend/backend share a domain family, 
+            // or 'none' (with secure: true) if they are on completely different domains (e.g., vercel vs render)
+            sameSite: isProduction ? "lax" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        //  Structure response data safely
+        const userData = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            profilePic: user.profilePic,
+            bio: user.bio,
+        };
+
+        res.status(200).json({
+            success: true,
+            message: "User signed in successfully",
+            user: userData,
+        });
+
+    } catch (err) {
+
+        console.error("Error in signInUser controller:", err);
 
         res.status(500).json({
             success: false,
