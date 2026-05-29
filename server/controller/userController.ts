@@ -178,3 +178,23 @@ export const signInUser = async (req: Request, res: Response): Promise<void> => 
         });
     }
 };
+
+export const isUserAuthenticated = async (req: Request, res: Response): Promise<void> => {
+    try {
+        //  The authMiddleware should have already verified the token and attached userId to req
+        const userId = (req as any).userId; // Type assertion to access userId
+
+        res.status(200).json({
+            success: true,
+            message: "User is authenticated",
+            userId: userId,
+        });
+
+    } catch (err) {
+        console.error("Error in isUserAuthenticated controller:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};

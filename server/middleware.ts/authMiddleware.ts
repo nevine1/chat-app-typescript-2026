@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
-// Extend the Express Request type cleanly without using 'any'
+
 interface AuthenticatedRequest extends Request {
     userId?: string;
 }
 
-const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         //  Grab the token directly from cookies
         const token = req.cookies.token;
@@ -19,14 +19,26 @@ const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: Ne
             return;
         }
 
-        //  Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
+        //  Safely check for JWT_SECRET
+        const secret = process.env.JWT_SECRET;
+        if (!secret) {
+            res.status(500).json({
+                success: false,
+                message: "Internal server configuration error"
+            });
+            return;
+        }
 
-        //  Attach the userId to the request object so protected controllers can use it
-        req.userId = decoded.id;
+        //  Verify token and map the correct payload key ('userId')
+        const decoded = jwt.verify(token, secret) as { userId: string };
 
+        //  Attach the userId to the request object
+        req.userId = decoded.userId; // Fixed matching payload key
+
+        //  Pass control to the next controller function
         next();
     } catch (err) {
+        console.error("Auth Middleware Error:", err);
         res.status(401).json({
             success: false,
             message: "Unauthorized: Invalid or expired token"
