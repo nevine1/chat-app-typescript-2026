@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import validator from "validator";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/userModel.js";
-
+import { uploadToCloudinary } from "../lib/cloudinary.js";
 export const createUser = async (
     req: Request,
     res: Response
@@ -48,6 +48,21 @@ export const createUser = async (
                 message: "User already exists",
             });
             return;
+        }
+
+        // upload profile picture to Cloudinary if provided (optional)
+        let profilePicUrl = "";
+        if (profilePic) {
+            try {
+                profilePicUrl = await uploadToCloudinary(profilePic, "user_profiles");
+            } catch (error) {
+                console.error("Error uploading profile picture to Cloudinary:", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Failed to upload profile picture",
+                });
+                return;
+            }
         }
 
         // Hash the password 
