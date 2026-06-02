@@ -5,12 +5,12 @@ export interface UserData {
     name?: string;
 }
 
-const userSlice = createSlice({
-    name: "user",
+const authSlice = createSlice({
+    name: "auth",
     initialState: {
         user: {},
         userError: null,
-        userLoading: false,
+        isUserLoading: false,
     },
     reducers: {
         setUserError: (state, action: PayloadAction<string>) => {
@@ -19,18 +19,18 @@ const userSlice = createSlice({
         setUser: (state, action: PayloadAction<any>) => {
             state.user = action.payload;
         },
-        setUserLoading: (state, action: PayloadAction<boolean>) => {
-            state.userLoading = action.payload;
+        setIsUserLoading: (state, action: PayloadAction<boolean>) => {
+            state.isUserLoading = action.payload;
         },
         clearUser: (state) => {
             state.user = {};
             state.userError = null;
-            state.userLoading = false;
+            state.isUserLoading = false;
         },
     },
 });
 
 
 
-export const { setUser, clearUser, setUserError, setUserLoading } = userSlice.actions;
-export default userSlice.reducer;
+export const { setUser, clearUser, setUserError, setIsUserLoading } = authSlice.actions;
+export default authSlice.reducer;
