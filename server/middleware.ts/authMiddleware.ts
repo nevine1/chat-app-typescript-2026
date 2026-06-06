@@ -35,7 +35,7 @@ const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: Ne
         //  Attach the userId to the request object
         req.userId = decoded.userId; // Fixed matching payload key
 
-        //  Pass control to the next controller function
+        //  Pass userId to the next controller function
         next();
     } catch (err) {
         console.error("Auth Middleware Error:", err);
