@@ -203,7 +203,7 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
         res.status(200).json({
             isAuthenticated: true,
             message: "User is authenticated",
-            user: user,
+            userData: user,
         });
 
     } catch (err) {

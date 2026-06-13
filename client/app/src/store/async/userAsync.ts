@@ -1,5 +1,6 @@
 import { AppDispatch, RootState } from '../store'
-import { setUser, setIsUserLoading } from './slices/authSlice';
+import { setUser, setIsUserLoading } from "../slices/authSlice"
+import axios from 'axios';
 const backUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Define a type for what this function returns
@@ -16,13 +17,14 @@ interface AuthResponse {
 export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
-        const response = await fetch(`${backUrl}/auth/check`, {
+        const res = await axios.get(`${backUrl}/users/check`, {
             method: 'GET',
             credentials: 'include'
         });
-        const data = await response.json();
-        if (data.isAuthenticated) {
-            dispatch(setUser(data.user));
+        console.log('response from auth check:', res);
+
+        if (res.data.isAuthenticated === true) {
+            dispatch(setUser(res.data.user));
         }
 
     } catch (error) {
@@ -35,27 +37,3 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
 
 
 
-export const isUserAuthenticated2 = async (): Promise<AuthResponse> => {
-    try {
-        const response = await fetch(`${backUrl}/auth/check`, {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        const data = await response.json();
-
-        // If authenticated, return the status and the user object
-        if (data.isAuthenticated) {
-            return {
-                isAuthenticated: true,
-                user: data.user
-            };
-        }
-
-        return { isAuthenticated: false, user: null };
-
-    } catch (error) {
-        console.error("Error checking authentication:", error);
-        return { isAuthenticated: false, user: null };
-    }
-};
