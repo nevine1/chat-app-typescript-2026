@@ -7,7 +7,7 @@ const backUrl = process.env.NEXT_PUBLIC_API_URL || '';
 interface AuthResponse {
     isAuthenticated: boolean;
     user: {
-        id: string;
+        _id: string;
         name: string;
         email: string;
         avatarUrl?: string;
@@ -24,7 +24,7 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
         console.log('response from auth check:', res);
 
         if (res.data.isAuthenticated === true) {
-            dispatch(setUser(res.data.user));
+            dispatch(setUser(res.data.userData));
         }
 
     } catch (error) {

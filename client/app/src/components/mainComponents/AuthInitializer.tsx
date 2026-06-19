@@ -20,7 +20,7 @@ export default function AuthInitializer({
     }, [dispatch]);
 
 
-    if (isUserLoading === false) {
+    if (isUserLoading) {
         return (
             <div className="flex items-center justify-center h-screen w-screen bg-slate-900 text-white">
                 <p className="text-xl animate-pulse">

@@ -199,7 +199,7 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
     try {
         const userId = (req as any).userId;
 
-        const user = await User.findById(userId).select('-password'); // Exclude password for security!
+        const user = await User.findById(userId).select('-password');
         res.status(200).json({
             isAuthenticated: true,
             message: "User is authenticated",

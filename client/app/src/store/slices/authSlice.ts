@@ -1,29 +1,37 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface UserData {
-    id: string;
+    _id: string;
     email: string;
-    name?: string;
+    name: string;
+    profilePic?: string;
+    bio?: string;
 }
 
+interface AuthState {
+    user: UserData | null;
+    userError: string | null;
+    isUserLoading: boolean;
+}
+const initialState: AuthState = {
+    user: null,
+    userError: null,
+    isUserLoading: false,
+}
 const authSlice = createSlice({
     name: "auth",
-    initialState: {
-        user: {},
-        userError: null,
-        isUserLoading: false,
-    },
+    initialState,
     reducers: {
         setUserError: (state, action: PayloadAction<string>) => {
             state.userError = action.payload;
         },
-        setUser: (state, action: PayloadAction<any>) => {
+        setUser: (state, action: PayloadAction<UserData>) => {
             state.user = action.payload;
         },
         setIsUserLoading: (state, action: PayloadAction<boolean>) => {
             state.isUserLoading = action.payload;
         },
         clearUser: (state) => {
-            state.user = {};
+            state.user = null;
             state.userError = null;
             state.isUserLoading = false;
         },
