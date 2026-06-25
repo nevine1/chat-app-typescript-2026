@@ -5,19 +5,31 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../store/store";
 import { isUserAuthenticated } from "../../store/async/userAsync";
 import { RootState } from "../../store/rootRoducer";
-
+import { useRouter } from "next/navigation";
+import Router from "next/router";
+//export default function AuthInitializer({
 export default function AuthInitializer({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const router = useRouter();
     const dispatch = useAppDispatch();
 
     const { isUserLoading } = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
-        dispatch(isUserAuthenticated());
-    }, [dispatch]);
+        const checkAuth = async () => {
+            const loggedIn = await dispatch(isUserAuthenticated());
+
+            if (loggedIn) {
+                router.push('/profile')
+            } else {
+                router.push('/auth/login')
+            }
+        }
+        checkAuth();
+    }, [dispatch, router]);
 
 
     if (isUserLoading) {

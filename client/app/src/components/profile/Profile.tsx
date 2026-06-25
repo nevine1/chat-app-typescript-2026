@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Props = {};
 
@@ -14,7 +15,7 @@ const Profile = (props: Props) => {
     const [bio, setBio] = useState<string>(
         "Hello everyone! I'm Martin, a passionate traveler and food lover..."
     );
-    cd
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
@@ -86,6 +87,13 @@ const Profile = (props: Props) => {
                     >
                         Save Profile
                     </button>
+
+                    <Link
+                        href="/"
+                        className=" text-white text-center hover:underline transition-all duration-300"
+                    >
+                        Chat Now
+                    </Link>
 
                 </form>
             </div>

@@ -1,6 +1,7 @@
 import { AppDispatch, RootState } from '../store'
 import { setUser, setIsUserLoading } from "../slices/authSlice"
 import axios from 'axios';
+
 const backUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Define a type for what this function returns
@@ -25,6 +26,9 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
 
         if (res.data.isAuthenticated === true) {
             dispatch(setUser(res.data.userData));
+            return true
+        } else {
+            return false;
         }
 
     } catch (error) {

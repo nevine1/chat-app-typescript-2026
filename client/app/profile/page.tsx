@@ -1,4 +1,4 @@
-import React from 'react'
+
 import Profile from '../src/components/profile/Profile';
 import bgImage from '../src/assets/bgImage.svg';
 
