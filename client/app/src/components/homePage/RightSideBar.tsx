@@ -11,7 +11,7 @@ const RightSideBar = ({ selectedUser }: Props) => {
         <div className={`bg-[#8185B2/10] text-white w-full relative overflow-y-scroll 
         ${selectedUser ? "max-md:hidden" : ""}`}>
             <div className="flex flex-col items-center p-4">
-                <Image src={selectedUser.profilePic || assets.avatar_icon || ""} alt="avatar" width={80} height={80}
+                <Image src={selectedUser.profilePic || "/images/avatar_icon.png"} alt="avatar" width={80} height={80}
                     className="rounded-lg object-cover w-20 aspect-[1/1]" />
                 <h2 className="text-white text-sm  mt-4 flex items-center gap-2">
                     {selectedUser.fullName}

@@ -40,4 +40,21 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
 }
 
 
+export const updateUserProfile = () => async (dispatch: AppDispatch, getState: () => RootState) => {
+    try {
+        dispatch(setIsUserLoading(true));
+        const state = getState();
+        const userId = state.auth.user?._id; // Assuming user ID is stored in auth slice
+
+        const res = await axios.put(`${backUrl}/users/update`, {
+            userId: userId,
+
+
+        });
+        dispatch(setUser(res.data.data));
+    } catch (err) {
+        console.error("Error updating user profile:", err);
+    }
+}
+
 

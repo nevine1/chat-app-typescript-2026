@@ -111,8 +111,8 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 <Image
                                     src={
                                         isSender
-                                            ? assets.profile_richard
-                                            : assets.profile_martin
+                                            ? "/images/profile_richard.png"
+                                            : "/images/profile_martin.png"
                                     }
                                     alt="user"
                                     width={28}

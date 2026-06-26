@@ -214,3 +214,43 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
         });
     }
 };
+
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+
+    try {
+
+        const { name, email, bio, profilePic } = req.body;
+        const userId = (req as any).userId; // Assuming userId is set in the request object by authentication middleware
+
+        //to update the profile data
+        const updatedUserData: any = {}
+        if (name) updatedUserData.name = name;
+        if (email) updatedUserData.email = email;
+        if (bio) updatedUserData.bio = bio;
+        if (profilePic) updatedUserData.profilePic = profilePic;
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            updatedUserData,
+            { new: true, runValidators: true }).select('-password');
+
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: user,
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        })
+    }
+}

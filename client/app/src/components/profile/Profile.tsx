@@ -1,10 +1,9 @@
 "use client";
-
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
+import defaultImg from '../../assets/images/default-avatar.png'
 type Props = {};
 
 const Profile = (props: Props) => {
@@ -56,7 +55,7 @@ const Profile = (props: Props) => {
                     />
 
                     <Image
-                        src={selectedImage || "/default-avatar.png"}
+                        src={selectedImage || "/images/avatar_icon.png"}
                         alt="Selected Avatar"
                         width={120}
                         height={120}

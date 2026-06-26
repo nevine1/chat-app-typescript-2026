@@ -91,7 +91,7 @@ const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
 
                             {/* Profile Image */}
                             <Image
-                                src={user?.profilePic || assets.avatar_icon}
+                                src={user?.profilePic || "/images/avatar_icon.png"}
                                 alt={user.fullName}
                                 width={30}
                                 height={30}
