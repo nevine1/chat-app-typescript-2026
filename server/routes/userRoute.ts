@@ -5,7 +5,7 @@ const userRouter = express.Router()
 
 userRouter.post('/register', createUser)
 userRouter.post('/login', signInUser)
-userRouter.put('/update', updateProfile)
+userRouter.put('/update', upload.single("image"), updateProfile)
 userRouter.get('/check', isUserAuthenticated)
 
 

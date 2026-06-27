@@ -3,13 +3,19 @@ import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import defaultImg from '../../assets/images/default-avatar.png'
+import { useAppDispatch, AppDispatch } from "@/store/store";
+import { updateUserProfile } from "@/store/async/userAsync";
+import { useDispatch } from "react-redux";
+
 type Props = {};
+
 
 const Profile = (props: Props) => {
     const router = useRouter();
+    const dispatch = useDispatch<AppDispatch>
 
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null); //image preview
+    const [imageFile, setImageFile] = useState<File | null>(null); //actual file to send to backend
     const [name, setName] = useState<string>("Martin Smith");
     const [bio, setBio] = useState<string>(
         "Hello everyone! I'm Martin, a passionate traveler and food lover..."
@@ -19,8 +25,10 @@ const Profile = (props: Props) => {
         const file = e.target.files?.[0];
 
         if (file) {
+            setImageFile(file); // Store the actual file for backend upload
             const imageUrl = URL.createObjectURL(file);
             setSelectedImage(imageUrl);
+
         }
     };
 
@@ -32,10 +40,14 @@ const Profile = (props: Props) => {
     };
 
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+    }
     return (
         <div className="min-h-screen flex items-center justify-center px-4 w-5/6">
             <div className="w-full max-w-lg">
-                <form className="w-full bg-black/50 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl px-8 py-10 flex flex-col gap-6">
+                <form onSubmit={handleSubmit}
+                    className="w-full bg-black/50 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl px-8 py-10 flex flex-col gap-6">
 
                     <h1 className="text-2xl font-semibold text-center text-white">
                         Profile Details

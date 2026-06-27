@@ -15,6 +15,12 @@ interface AuthResponse {
     } | null;
 }
 
+interface updateProfileData {
+    name: string;
+    email: string;
+    bio: string;
+    profilePic: File | null;
+}
 export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
@@ -40,16 +46,25 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
 }
 
 
-export const updateUserProfile = () => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const updateUserProfile = (data: updateProfileData) => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
         const state = getState();
         const userId = state.auth.user?._id; // Assuming user ID is stored in auth slice
 
-        const res = await axios.put(`${backUrl}/users/update`, {
-            userId: userId,
+        const formData = new FormData();
+        formData.append("userId", userId || "");
 
+        formData.append("name", data.name);
 
+        formData.append("bio", data.bio);
+        if (data.profilePic) {
+            formData.append("profilePic", data.profilePic);
+        }
+        const res = await axios.put(`${backUrl}/users/update`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
         });
         dispatch(setUser(res.data.data));
     } catch (err) {
