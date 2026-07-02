@@ -21,6 +21,16 @@ interface updateProfileData {
     bio: string;
     profilePic: File | null;
 }
+
+interface RegisterUserInfo {
+    name: string;
+    email: string;
+    bio: string;
+    password: string;
+    profilePic: File | null;
+}
+
+
 export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
@@ -45,6 +55,36 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
     }
 }
 
+export const registerNewUser = (userInfo: RegisterUserInfo) =>
+    async (dispatch: AppDispatch, getState: () => RootState) => {
+
+        try {
+            dispatch(setIsUserLoading(true));
+
+            const res = await axios.post(`${backUrl}/users/register`, {
+                name: userInfo.name,
+                email: userInfo.email,
+                password: userInfo.password,
+                bio: userInfo.bio,
+
+            }, {
+                /* headers: {
+                    "Content-Type": "multipart/form-data" there is no image to upload, so no need to use form-data
+                }, */
+                withCredentials: true // Include cookies in the request
+            });
+
+            if (res.data.success) {
+                dispatch(setUser(res.data.user));
+            }
+
+        } catch (err) {
+            console.error("Error registering new user:", err);
+
+        } finally {
+            dispatch(setIsUserLoading(false));
+        }
+    }
 
 export const updateUserProfile = (data: updateProfileData) => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
@@ -53,11 +93,10 @@ export const updateUserProfile = (data: updateProfileData) => async (dispatch: A
         const userId = state.auth.user?._id; // Assuming user ID is stored in auth slice
 
         const formData = new FormData();
-        formData.append("userId", userId || "");
 
         formData.append("name", data.name);
-
         formData.append("bio", data.bio);
+
         if (data.profilePic) {
             formData.append("profilePic", data.profilePic);
         }

@@ -3,8 +3,8 @@ import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAppDispatch, AppDispatch } from "@/store/store";
-import { updateUserProfile } from "@/store/async/userAsync";
+import { AppDispatch } from "@/store/store";
+import { updateUserProfile } from "../../store/async/userAsync";
 import { useDispatch } from "react-redux";
 
 type Props = {};
@@ -12,7 +12,7 @@ type Props = {};
 
 const Profile = (props: Props) => {
     const router = useRouter();
-    const dispatch = useDispatch<AppDispatch>
+    const dispatch = useDispatch<AppDispatch>();
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null); //image preview
     const [imageFile, setImageFile] = useState<File | null>(null); //actual file to send to backend
@@ -42,7 +42,14 @@ const Profile = (props: Props) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        dispatch(updateUserProfile({
+            name,
+            bio,
+            profilePic: imageFile,
+            email: ""
+        }))
     }
+
     return (
         <div className="min-h-screen flex items-center justify-center px-4 w-5/6">
             <div className="w-full max-w-lg">

@@ -6,8 +6,8 @@ import { useAppDispatch } from "../../store/store";
 import { isUserAuthenticated } from "../../store/async/userAsync";
 import { RootState } from "../../store/rootRoducer";
 import { useRouter } from "next/navigation";
-import Router from "next/router";
-//export default function AuthInitializer({
+
+
 export default function AuthInitializer({
     children,
 }: {

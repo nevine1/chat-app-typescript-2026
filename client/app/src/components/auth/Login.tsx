@@ -3,23 +3,30 @@ import React, { useState } from 'react'
 import Image from "next/image"
 import assets from '../../assets/assets'
 import { useRouter } from 'next/navigation'
-type UserInfo = {
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '@/store/store'
+import { registerNewUser } from '../../store/async/userAsync'
+import { RegisterUserInfo } from '../../store/async/userAsync'
+/* type UserInfo = {
     name: string,
     email: string,
     password: string,
     bio: string
-}
+} */
 
-const Login = ({ UserInfo }: { UserInfo: UserInfo }) => {
+const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => {
     const router = useRouter()
     const [currState, setCurrState] = useState<string>("Sign Up")
-    const [isFormSubmitted, setIsFormSubmitted] = useState<boolean>(false)
-    const [userInfo, setUserInfo] = useState<UserInfo>({
+
+    const [userInfo, setUserInfo] = useState<RegisterUserInfo>({
         name: "",
         email: "",
         password: "",
-        bio: ""
+        bio: "",
+
     })
+    const dispatch = useDispatch<AppDispatch>()
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setUserInfo(prevState => ({
@@ -33,8 +40,9 @@ const Login = ({ UserInfo }: { UserInfo: UserInfo }) => {
         if (currState === "Sign Up") {
             // Handle sign up logic here
             console.log("Signing up with:", userInfo)
-            if (userInfo.name || userInfo.email || userInfo.password || userInfo.bio) {
-                setIsFormSubmitted(true)
+            if (userInfo.name && userInfo.email && userInfo.password && userInfo.bio) {
+                dispatch(registerNewUser(userInfo))
+
                 router.push('/profile')
             } else {
                 console.log('user info is', userInfo)

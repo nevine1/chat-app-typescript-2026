@@ -4,6 +4,8 @@ import validator from "validator";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/userModel.js";
 import { uploadToCloudinary } from "../lib/cloudinary.js";
+
+
 export const createUser = async (
     req: Request,
     res: Response
@@ -74,7 +76,7 @@ export const createUser = async (
             name,
             email: sanitizedEmail,
             password: hashedPassword,
-            profilePic,
+            profilePic: profilePicUrl,
             bio,
         });
 
@@ -219,19 +221,19 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     try {
 
-        const { name, email, bio, profilePic } = req.body;
+        const { name, email, bio } = req.body;
         const userId = (req as any).userId; // Assuming userId is set in the request object by authentication middleware
-
+        const file = req.file; // Assuming multer middleware is used to handle file uploads
         //to update the profile data
-        const updatedUserData: any = {}
-        if (name) updatedUserData.name = name;
-        if (email) updatedUserData.email = email;
-        if (bio) updatedUserData.bio = bio;
-        if (profilePic) updatedUserData.profilePic = profilePic;
+        const updatedProfileData: any = {}
+        if (name) updatedProfileData.name = name;
+        if (email) updatedProfileData.email = email;
+        if (bio) updatedProfileData.bio = bio;
+        if (file) updatedProfileData.profilePic = file.path;
 
         const user = await User.findByIdAndUpdate(
             userId,
-            updatedUserData,
+            updatedProfileData,
             { new: true, runValidators: true }).select('-password');
 
         if (!user) {
@@ -244,10 +246,11 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         res.status(200).json({
             success: true,
             message: "Profile updated successfully",
-            data: user,
+            data: user
         });
-
     } catch (err) {
+        console.error("Error in updateProfile controller:", err);
+
         res.status(500).json({
             success: false,
             message: "Internal server error"
