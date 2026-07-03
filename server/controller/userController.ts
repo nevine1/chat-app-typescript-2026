@@ -6,114 +6,105 @@ import User from "../models/userModel.js";
 import { uploadToCloudinary } from "../lib/cloudinary.js";
 
 
-export const createUser = async (
-    req: Request,
-    res: Response
-): Promise<void> => {
+export const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, password, profilePic, bio } = req.body;
 
-        // 1. Required fields validation
-        if (!name || !email || !password) {
+        // Sanitize Input
+        const sanitizedName = name?.trim();
+        const sanitizedEmail = email?.trim().toLowerCase();
+        const sanitizedBio = bio?.trim() || "";
+
+        if (!sanitizedName || !sanitizedEmail || !password) {
             res.status(400).json({
                 success: false,
-                message: "Name, email and password are required",
+                message: "Name, email and password are required.",
             });
             return;
         }
-
-        // Sanitize and validate Email (trims extra spaces & forces lowercase)
-        const sanitizedEmail = email.trim().toLowerCase();
 
         if (!validator.isEmail(sanitizedEmail)) {
             res.status(400).json({
                 success: false,
-                message: "Invalid email",
+                message: "Invalid email address.",
             });
             return;
         }
-
 
         if (password.length < 6) {
             res.status(400).json({
                 success: false,
-                message: "Password must be at least 6 characters",
+                message: "Password must be at least 6 characters.",
             });
             return;
         }
 
-
         const existingUser = await User.findOne({ email: sanitizedEmail });
+
         if (existingUser) {
             res.status(409).json({
                 success: false,
-                message: "User already exists",
+                message: "User already exists.",
             });
             return;
         }
 
-        // upload profile picture to Cloudinary if provided (optional)
+        // Upload Profile Picture 
         let profilePicUrl = "";
+
         if (profilePic) {
             try {
-                profilePicUrl = await uploadToCloudinary(profilePic, "user_profiles");
+                profilePicUrl = await uploadToCloudinary(
+                    profilePic,
+                    "user_profiles"
+                );
             } catch (error) {
-                console.error("Error uploading profile picture to Cloudinary:", error);
+                console.error("Cloudinary Upload Error:", error);
+
                 res.status(500).json({
                     success: false,
-                    message: "Failed to upload profile picture",
+                    message: "Failed to upload profile picture.",
                 });
                 return;
             }
         }
 
-        // Hash the password 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        //  Create and save the new user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        // Create User
         const user = await User.create({
-            name,
+            name: sanitizedName,
             email: sanitizedEmail,
             password: hashedPassword,
             profilePic: profilePicUrl,
-            bio,
+            bio: sanitizedBio,
         });
-
-        //  Generate the JWT token using 
+        // Generate JWT
         const token = generateToken(user._id.toString());
 
-        const newUser = {
+        // Send JWT in HTTP-Only Cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+        const registeredUser = {
             _id: user._id,
             name: user.name,
             email: user.email,
             profilePic: user.profilePic,
-            bio: user.bio,
-        };
-
-        //  Maximum Security Step: Send the token in an HTTP-Only Cookie
-        res.cookie("token", token, {
-            httpOnly: true, // Blocks XSS attacks (JavaScript cannot touch this cookie)
-            secure: process.env.NODE_ENV === "production", // Cookie only transmits over HTTPS in production
-            sameSite: "strict", // Shields your app against CSRF attacks
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-        });
-
-
-        console.log("New user created successfully:", newUser._id);
-
+            bio: user.bio
+        }
         res.status(201).json({
             success: true,
-            message: "User created successfully",
-            user: newUser,
-            // we don't return the token in the body anymore; it's tucked away safely in the cookie!
+            message: "User registered successfully.",
+            user: registeredUser
         });
-
-    } catch (err) {
-        console.error("Error in createUser controller:", err);
+    } catch (error) {
+        console.error("Create User Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
+            message: "Internal server error.",
         });
     }
 };

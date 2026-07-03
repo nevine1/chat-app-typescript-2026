@@ -68,9 +68,7 @@ export const registerNewUser = (userInfo: RegisterUserInfo) =>
                 bio: userInfo.bio,
 
             }, {
-                /* headers: {
-                    "Content-Type": "multipart/form-data" there is no image to upload, so no need to use form-data
-                }, */
+
                 withCredentials: true // Include cookies in the request
             });
 
