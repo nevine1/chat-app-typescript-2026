@@ -193,10 +193,18 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
         const userId = (req as any).userId;
 
         const user = await User.findById(userId).select('-password');
+        if (!user) {
+            res.status(404).json({
+                isAuthenticated: false,
+                message: "User not found",
+            });
+            return;
+        }
+        console.log("authenticad erris is;akdafk")
         res.status(200).json({
             isAuthenticated: true,
             message: "User is authenticated",
-            userData: user,
+            data: user,
         });
 
     } catch (err) {
@@ -204,6 +212,32 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
         res.status(500).json({
             isAuthenticated: false,
             message: "Internal server error",
+        });
+    }
+};
+
+export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userId;
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            message: "User data retrieved successfully",
+            data: user
+        });
+
+    } catch (err) {
+        console.error("Error in getUserData controller:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
         });
     }
 };

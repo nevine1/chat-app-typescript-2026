@@ -23,8 +23,14 @@ const userSchema = new mongoose.Schema({
     },
     profilePic: {
         type: String,
-        default: 'https://res.cloudinary.com/dzqj8y1wq/image/upload/v1700000000/default-profile-pic.png',
-        validate: [validator.isURL, "Please provide a valid image URL"],
+        default: "",
+        validate: {
+            validator: function (value: string) {
+                return value === "" || validator.isURL(value);
+            },
+            message: "Please provide a valid image URL",
+        }
+
     },
     bio: {
         type: String,

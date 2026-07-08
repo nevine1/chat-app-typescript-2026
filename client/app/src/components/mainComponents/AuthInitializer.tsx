@@ -7,7 +7,6 @@ import { isUserAuthenticated } from "../../store/async/userAsync";
 import { RootState } from "../../store/rootRoducer";
 import { useRouter } from "next/navigation";
 
-
 export default function AuthInitializer({
     children,
 }: {
@@ -16,22 +15,24 @@ export default function AuthInitializer({
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isUserLoading } = useSelector((state: RootState) => state.auth);
+    // Pull authentication details and loading state from Redux
+    const { isUserLoading, user } = useSelector((state: RootState) => state.auth);
 
+    // 1. First effect: Trigger the auth check when the component mounts
     useEffect(() => {
-        const checkAuth = async () => {
-            const loggedIn = await dispatch(isUserAuthenticated());
+        dispatch(isUserAuthenticated());
+    }, [dispatch]);
 
-            if (loggedIn) {
-                router.push('/profile')
-            } else {
-                router.push('/auth/login')
+    // 2. Second effect: Redirect once loading has finished and state is determined
+    useEffect(() => {
+        if (!isUserLoading) {
+            if (!user) {
+                router.push('/auth');
             }
         }
-        checkAuth();
-    }, [dispatch, router]);
+    }, [isUserLoading, user, router]);
 
-
+    // Show loading screen until the server verification returns a response
     if (isUserLoading) {
         return (
             <div className="flex items-center justify-center h-screen w-screen bg-slate-900 text-white">
@@ -42,5 +43,5 @@ export default function AuthInitializer({
         );
     }
 
-    return children;
+    return <>{children}</>;
 }
