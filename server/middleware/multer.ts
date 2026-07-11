@@ -1,6 +1,6 @@
-import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
 
 // Configure Cloudinary with credentials from environment variables
 cloudinary.config({
@@ -15,3 +15,8 @@ const storage = new CloudinaryStorage({
     folder: "user_profiles",
     allowedFormats: ["jpg", "png", "gif"],
 });
+
+
+const upload = multer({ storage: storage });
+
+export default upload; 

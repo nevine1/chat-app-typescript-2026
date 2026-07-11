@@ -1,5 +1,5 @@
 import { AppDispatch, RootState } from '../store'
-import { setUser, setIsUserLoading } from "../slices/authSlice"
+import { setUser, setIsUserLoading, clearUser } from "../slices/authSlice"
 import axios from 'axios';
 import { UserData } from '../../imports/types';
 const backUrl = process.env.NEXT_PUBLIC_API_URL || '';
@@ -30,7 +30,12 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
             return false;
         }
 
-    } catch (error) {
+    } catch (error: any) {
+        if (error.response?.status === 401) {
+            dispatch(clearUser());
+            return false;
+        }
+
         console.error("Error checking authentication:", error);
         return false;
     } finally {
@@ -51,8 +56,10 @@ export const registerNewUser = (userInfo: UserData) =>
 
             if (res.data.success) {
                 dispatch(setUser(res.data.user));
+                return true;
             }
 
+            return false;
         } catch (err) {
             console.error("Error registering new user:", err);
 
@@ -81,8 +88,6 @@ export const getUserProfile = () => async (dispatch: AppDispatch, getState: () =
 export const updateUserProfile = (data: UserData) => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
-        const state = getState();
-        const userId = state.auth.user?._id; // Assuming user ID is stored in auth slice
 
         const formData = new FormData();
 
@@ -92,14 +97,21 @@ export const updateUserProfile = (data: UserData) => async (dispatch: AppDispatc
         if (data.profilePic) {
             formData.append("profilePic", data.profilePic);
         }
-        const res = await axios.put(`${backUrl}/users/update`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
+        const res = await axios.put(`${backUrl}/users/update`, formData,
+            {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
             }
-        });
+        );
         dispatch(setUser(res.data.data));
+        return res.data.data;
     } catch (err) {
         console.error("Error updating user profile:", err);
+        throw err;
+    } finally {
+        dispatch(setIsUserLoading(false));
     }
 }
 

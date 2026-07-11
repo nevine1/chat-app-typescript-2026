@@ -28,6 +28,8 @@ export default function AuthInitializer({
         if (!isUserLoading) {
             if (!user) {
                 router.push('/auth');
+            } else {
+                router.push("/profile")
             }
         }
     }, [isUserLoading, user, router]);

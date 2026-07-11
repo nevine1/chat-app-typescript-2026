@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* خيارات الإعدادات هنا */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
+  },
 };
 
 // 🟢 قم بتغيير السطر الأخير ليكون هكذا:

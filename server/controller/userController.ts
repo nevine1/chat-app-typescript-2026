@@ -81,6 +81,9 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         // Generate JWT
         const token = generateToken(user._id.toString());
 
+        console.log("User created:", user.email);
+        console.log("Token:", token);
+
         // Send JWT in HTTP-Only Cookie
         res.cookie("token", token, {
             httpOnly: true,
@@ -200,7 +203,7 @@ export const isUserAuthenticated = async (req: Request, res: Response): Promise<
             });
             return;
         }
-        console.log("authenticad erris is;akdafk")
+
         res.status(200).json({
             isAuthenticated: true,
             message: "User is authenticated",
@@ -248,6 +251,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
         const { name, email, bio } = req.body;
         const userId = (req as any).userId; // Assuming userId is set in the request object by authentication middleware
+        console.log('User id is:', userId)
         const file = req.file; // Assuming multer middleware is used to handle file uploads
         //to update the profile data
         const updatedProfileData: any = {}

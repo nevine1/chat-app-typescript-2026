@@ -3,7 +3,7 @@ import {
     createUser, signInUser, isUserAuthenticated,
     updateProfile, getUserProfile
 } from '../controller/userController.ts'
-import upload from '../middleware/upload.ts'
+import upload from '../middleware/multer.ts'
 import authMiddleware from '../middleware/authMiddleware.ts'
 const userRouter = express.Router()
 
