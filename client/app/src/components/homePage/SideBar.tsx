@@ -1,15 +1,28 @@
-import React from 'react'
+import { useEffect } from 'react'
 import Image from 'next/image'
 import { CiMenuKebab, CiSearch } from "react-icons/ci";
 
 import assets, { User, userDummyData } from '../../assets/assets'
-
+import { RootState } from '../../store/rootRoducer';
+import { useSelector, useDispatch } from 'react-redux';
+import { getUsers } from '../../store/async/userAsync';
+import { logout } from '../../store/slices/authSlice';
 type Props = {
     selectedUser: User | null
     setSelectedUser: (user: User | null) => void
 }
 
 const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
+    const users = useSelector((state: RootState) => state.users.users);
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(getUsers());
+    }, [dispatch])
+
+    const signOut = () => {
+        dispatch(logout());
+    }
+
     return (
         <div
             className={`
@@ -55,7 +68,8 @@ const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
 
                         <hr className="border-gray-700" />
 
-                        <p className="px-4 py-2 hover:bg-[#3A3C42] cursor-pointer rounded-b-xl text-red-400">
+                        <p onClick={signOut}
+                            className="px-4 py-2 hover:bg-[#3A3C42] cursor-pointer rounded-b-xl text-red-400">
                             Logout
                         </p>
                     </div>
@@ -79,7 +93,7 @@ const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
             <div className="space-y-2">
 
                 {
-                    userDummyData.map((user, index) => (
+                    users.map((user, index) => (
 
                         <div
                             key={index}
@@ -92,7 +106,7 @@ const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
                             {/* Profile Image */}
                             <Image
                                 src={user?.profilePic || "/images/avatar_icon.png"}
-                                alt={user.fullName}
+                                alt={user?.name || "User Avatar"}
                                 width={30}
                                 height={30}
                                 className="rounded-full object-cover "
@@ -102,7 +116,7 @@ const SideBar = ({ selectedUser, setSelectedUser }: Props) => {
                             <div className="flex-1 min-w-0">
 
                                 <p className="text-sm truncate">
-                                    {user.fullName}
+                                    {user?.name}
                                 </p>
 
                                 {

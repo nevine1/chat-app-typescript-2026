@@ -1,7 +1,8 @@
 import { AppDispatch, RootState } from '../store'
-import { setUser, setIsUserLoading, clearUser } from "../slices/authSlice"
+import { setUser, setIsUserLoading, setUserError, logout } from "../slices/authSlice"
 import axios from 'axios';
-import { UserData } from '../../imports/types';
+import { UserData, LoginInfo } from '../../imports/types';
+import { setUsers, setIsLoading } from '../slices/usersSlice';
 const backUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Define a type for what this function returns
@@ -13,7 +14,25 @@ interface AuthResponse {
 
 
 
-
+export const userLogin = (loginInfo: LoginInfo) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    try {
+        dispatch(setIsUserLoading(true));
+        const res = await axios.post(`${backUrl}/users/login`, loginInfo, {
+            method: 'POST',
+            withCredentials: true // Include cookies in the request
+        });
+        console.log('response from auth check:', res);
+        if (res.data.success) {
+            dispatch(setUser(res.data.user));
+            return true;
+        }
+    } catch (error: any) {
+        dispatch(setUserError(error.response?.data?.message || "An error occurred during login."));
+        console.error("Error during user login:", error);
+    } finally {
+        dispatch(setIsUserLoading(false));
+    }
+}
 export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
         dispatch(setIsUserLoading(true));
@@ -32,7 +51,7 @@ export const isUserAuthenticated = () => async (dispatch: AppDispatch, getState:
 
     } catch (error: any) {
         if (error.response?.status === 401) {
-            dispatch(clearUser());
+            dispatch(logout());
             return false;
         }
 
@@ -112,6 +131,24 @@ export const updateUserProfile = (data: UserData) => async (dispatch: AppDispatc
         throw err;
     } finally {
         dispatch(setIsUserLoading(false));
+    }
+}
+
+
+export const getUsers = () => async (dispatch: AppDispatch, getState: () => RootState) => {
+    try {
+        dispatch(setIsLoading(true));
+        const res = await axios.get(`${backUrl}/users/allUsers`, {
+            withCredentials: true // Include cookies in the request
+        });
+        console.log('response for users are:', res.data.data)
+        if (res.data.success) {
+            dispatch(setUsers(res.data.data));
+        }
+    } catch (err) {
+        console.error("Error fetching users:", err);
+    } finally {
+        dispatch(setIsLoading(false));
     }
 }
 

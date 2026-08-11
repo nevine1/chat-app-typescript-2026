@@ -286,3 +286,23 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         })
     }
 }
+
+export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userId;
+        const users = await User.find({ _id: { $ne: userId } }).select('-password');
+        // const users = await User.find().select('-password');
+        res.status(200).json({
+            success: true,
+            message: "All users retrieved successfully",
+            data: users
+        })
+
+    } catch (err) {
+        console.error("Error in getAllUsers controller:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        })
+    }
+}

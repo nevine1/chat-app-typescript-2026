@@ -1,23 +1,22 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from "next/image"
 import assets from '../../assets/assets'
 import { useRouter } from 'next/navigation'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/store/store'
-import { registerNewUser } from '../../store/async/userAsync'
+import { registerNewUser, userLogin } from '../../store/async/userAsync'
 import { RegisterUserInfo } from '../../store/async/userAsync'
-/* type UserInfo = {
-    name: string,
-    email: string,
-    password: string,
-    bio: string
-} */
+import { FaEyeSlash, FaEye } from 'react-icons/fa6'
+import { toast } from 'react-toastify/unstyled'
+import { RootState } from '../../store/rootRoducer'
 
-const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => {
+const Login = () => {
     const router = useRouter()
+    const user = useSelector((state: RootState) => state.auth.user)
     const [currState, setCurrState] = useState<string>("Sign Up")
-
+    const [showPass, setShowPass] = useState<boolean>(false);
+    const [isAgreed, setIsAgreed] = useState<boolean>(false);
     const [userInfo, setUserInfo] = useState<RegisterUserInfo>({
         name: "",
         email: "",
@@ -29,8 +28,8 @@ const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
-        setUserInfo(prevState => ({
-            ...prevState,
+        setUserInfo(prev => ({
+            ...prev,
             [name]: value
         }))
     }
@@ -38,18 +37,35 @@ const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (currState === "Sign Up") {
-            if (userInfo.name && userInfo.email && userInfo.password && userInfo.bio) {
+            if (userInfo.name && userInfo.email && userInfo.password) {
                 try {
-                    // .unwrap() allows you to catch the rejected action right here
+
                     await dispatch(registerNewUser(userInfo));
-                    router.push('/profile');
                 } catch (error) {
                     /* console.log("Error during registration:", error); */
                     alert("Error during registration: " + (error as Error).message);
                 }
             }
+        } else {
+            if (userInfo.email && userInfo.password) {
+                try {
+                    await dispatch(userLogin({
+                        email: userInfo?.email,
+                        password: userInfo?.password
+                    }));
+                } catch (error) {
+                    /* console.log("Error during login:", error); */
+                    toast.error("Error during login: " + (error as Error).message);
+                }
+            }
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            router.push("/profile")
+        }
+    }, [user])
     return (
         <div className="min-h-screen bg-[#111827] text-white bg-cover bg-center flex items-center justify-center sm:justify-evenly max-sm:flex-col backdrop-blur-lg">
             {/*  left side */}
@@ -90,13 +106,23 @@ const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => 
                 </div>
                 <div className="mb-4 flex flex-col text-white">
                     <label htmlFor="password" className="w-full text-gray-700 mb-2 text-white">Password</label>
-                    <input type="password"
-                        id="password"
-                        name="password"
-                        required
-                        value={userInfo.password}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    <div className="relative flex flex-row items-center w-full ">
+                        <input
+                            type={showPass ? "text" : "password"}
+                            id="password"
+                            name="password"
+                            required
+                            value={userInfo.password}
+                            onChange={handleChange}
+                            className="border border-gray-300 w-full rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        {
+                            showPass ?
+                                <FaEye onClick={() => setShowPass(false)} className="absolute right-3 cursor-pointer" /> :
+                                <FaEyeSlash onClick={() => setShowPass(true)} className="absolute right-3 cursor-pointer" />
+                        }
+                    </div>
+
+
                 </div>
                 {
                     currState === "Sign Up" && (
@@ -115,12 +141,16 @@ const Login = ({ RegisterUserInfo }: { RegisterUserInfo: RegisterUserInfo }) => 
                     )
                 }
                 <div className="mt-4 text-sm text-gray-600">
-                    <input type='checkbox' id='terms' className="mr-2" />
-                    <label htmlFor="terms" className="text-white">I agree to the terms and conditions</label>
+                    <input type='checkbox' id='terms' className="mr-2"
+                        checked={isAgreed} onChange={() => setIsAgreed(!isAgreed)}
+                    />
+                    <label htmlFor="terms" className="text-white">
+                        I agree to the terms and conditions
+                    </label>
                 </div>
                 <button type="submit"
-                    disabled={currState === "Sign Up" && (!userInfo.name || !userInfo.email || !userInfo.password || !userInfo.bio)}
-                    className="bg-blue-500 hover:bg-blue-700 text-white
+/*                     disabled={currState === "Sign Up" && (!userInfo.name || !userInfo.email || !userInfo.password || !isAgreed)}
+ */                    className="bg-blue-500 hover:bg-blue-700 text-white
                      font-bold py-2 px-4 rounded-md transition-all duration-300
                      disabled:opacity-50 disabled:cursor-not-allowed mt-4
                      cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50

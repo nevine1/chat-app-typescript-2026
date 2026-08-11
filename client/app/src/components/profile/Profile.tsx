@@ -8,9 +8,10 @@ import { updateUserProfile } from "../../store/async/userAsync";
 import { useDispatch, useSelector } from "react-redux";
 import { UserData } from "../../imports/types";
 import { RootState } from "../../store/rootRoducer";
-
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 const Profile = () => {
-
+    const router = useRouter();
     const dispatch = useDispatch<AppDispatch>();
     const user: UserData | null = useSelector((state: RootState) => state.auth.user);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -71,14 +72,17 @@ const Profile = () => {
                 updateUserProfile({
                     name: userProfile?.name || "",
                     bio: userProfile?.bio || "",
-                    profilePic: imageFile
+                    profilePic: imageFile,
+                    email: "",
+                    password: ""
                 })
             );
-
+            router.push("/chat")
             setIsEditing(false); // Switch back to view mode on success
-            alert("Profile updated successfully!");
+            toast.success(`${userProfile?.name?.charAt(0)?.toUpperCase()}, your profile has been updated!`);
         } catch (error) {
             console.error("Failed to update profile in UI component:", error);
+            toast.error("Failed to update profile.");
         }
     };
 
