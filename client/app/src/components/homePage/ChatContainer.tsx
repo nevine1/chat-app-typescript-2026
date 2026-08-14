@@ -26,7 +26,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                 {/* User Avatar */}
                 <Image
-                    src={assets.avatar_icon || ""}
+                    src={selectedUser?.profilePic || ""}
                     alt="avatar"
                     width={40}
                     height={40}

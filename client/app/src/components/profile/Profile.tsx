@@ -77,9 +77,9 @@ const Profile = () => {
                     password: ""
                 })
             );
-            router.push("/chat")
+            router.push("/")
             setIsEditing(false); // Switch back to view mode on success
-            toast.success(`${userProfile?.name?.charAt(0)?.toUpperCase()}, your profile has been updated!`);
+            toast.success(`${userProfile?.name?.toUpperCase()}, your profile has been updated!`);
         } catch (error) {
             console.error("Failed to update profile in UI component:", error);
             toast.error("Failed to update profile.");
