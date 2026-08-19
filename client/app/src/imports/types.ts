@@ -14,3 +14,10 @@ export interface LoginInfo {
 export interface UsersList {
     users: UserData[];
 }
+
+export interface Message {
+    senderId: string;
+    receiverId: string;
+    text: string;
+    timestamp: Date;
+}
