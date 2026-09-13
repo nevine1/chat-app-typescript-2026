@@ -6,7 +6,8 @@ import rateLimit from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 import connectDB from './lib/db.js'
 import userRouter from './routes/userRoute.js'
-import messageRouter from './routes/messageRoute.js'
+import messageRouter from './routes/messageRoute.js';
+import conversationRoute from './routes/conversationRoute.js';
 dotenv.config()
 
 const app = express();
@@ -54,6 +55,7 @@ connectDB();
 //api routes
 app.use("/api/users", userRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/conversations", conversationRoute);
 
 app.get('/', (req, res) => {
     res.status(200).json({ status: 'healthy' });
