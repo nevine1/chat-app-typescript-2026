@@ -10,8 +10,13 @@ export const createNewConversation = async (req: Request, res: Response): Promis
         });
 
         await conversation.save();
-
-        res.status(201).json(conversation);
+        console.log("senderId:", senderId);
+        console.log("receiverId:", receiverId);
+        res.status(201).json({
+            success: true,
+            message: "Conversation created successfully",
+            data: conversation
+        });
     } catch (err) {
         res.status(500).json({
             error: "Failed to create conversation"
@@ -20,7 +25,7 @@ export const createNewConversation = async (req: Request, res: Response): Promis
 
 };
 
-export const getUserConversations = async (req: Request, res: Response): Promise<void> => {
+export const getUserConversation = async (req: Request, res: Response): Promise<void> => {
     try {
         const { senderId, receiverId } = req.body;
 

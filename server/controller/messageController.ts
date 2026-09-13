@@ -1,23 +1,23 @@
 
+import Conversation from '../models/conversationModel';
 import Message from '../models/messageModel';
 import { Request, Response } from "express";
 
 
 export const createNewMessage = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { conversationId } = req.params;
-        const { senderId, text } = req.body;
 
-        const newMessage = await Message.create({
-            conversationId,
-            senderId,
-            text
+        const { senderId, receiverId } = req.body;
+
+        const conversation = new Conversation({
+            members: [senderId, receiverId]
         });
+        conversation.save();
 
         return res.status(200).json({
             success: true,
             message: "Message created successfully",
-            data: newMessage
+            data: conversation
         });
 
     } catch (err) {
