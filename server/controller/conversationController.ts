@@ -58,3 +58,19 @@ export const getUserConversation = async (req: Request, res: Response): Promise<
     }
 
 };
+
+export const getAllConversations = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.query.userId as string;
+        const conversations = await Conversation.find({ members: userId }).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            message: "Conversations retrieved successfully",
+            data: conversations
+        });
+    } catch (err) {
+        res.status(500).json({
+            error: "Failed to retrieve conversations"
+        });
+    }
+};

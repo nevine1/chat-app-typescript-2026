@@ -4,29 +4,41 @@ import Message from '../models/messageModel';
 import { Request, Response } from "express";
 
 
-export const createNewMessage = async (req: Request, res: Response): Promise<void> => {
+export const createNewMessage = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
+        const { conversationId } = req.params;
+        const { senderId, receiverId, text } = req.body;
 
-        const { senderId, receiverId } = req.body;
-
-        const conversation = new Conversation({
-            members: [senderId, receiverId]
+        const newMessage = new Message({
+            conversationId,
+            senderId,
+            receiverId,
+            text
         });
-        conversation.save();
 
-        return res.status(200).json({
+        await newMessage.save();
+
+        console.log(
+            `Created message: conversationId: ${conversationId}, senderId: ${senderId}, receiverId: ${receiverId}, text: ${text}`
+        );
+
+        return res.status(201).json({
             success: true,
             message: "Message created successfully",
-            data: conversation
+            data: newMessage
         });
 
     } catch (err) {
+        console.error("Failed to create message:", err);
+
         res.status(500).json({
             error: "Failed to create message"
         });
     }
 };
-
 export const getAllMessages = async (req: Request, res: Response): Promise<void> => {
     try {
 
