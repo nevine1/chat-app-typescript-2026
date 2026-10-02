@@ -206,7 +206,7 @@ const Login = () => {
                                     rounded-md
                                     py-2
                                     px-3
-                                    text-black
+                                    text-white
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-blue-300
@@ -247,7 +247,7 @@ const Login = () => {
                                         rounded-md
                                         py-2
                                         px-3
-                                        text-black
+                                        text-white
                                         focus:outline-none
                                         focus:ring-2
                                         focus:ring-blue-300
@@ -265,7 +265,7 @@ const Login = () => {
                                             right-3
                                             top-3
                                             cursor-pointer
-                                            text-black
+                                            text-white
                                         "
                                     />
 
@@ -280,7 +280,7 @@ const Login = () => {
                                             right-3
                                             top-3
                                             cursor-pointer
-                                            text-black
+                                            text-white
                                         "
                                     />
 
@@ -326,7 +326,7 @@ const Login = () => {
                                     rounded-md
                                     py-2
                                     px-3
-                                    text-black
+                                    text-white
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-blue-300
@@ -360,7 +360,7 @@ const Login = () => {
                                     rounded-md
                                     py-2
                                     px-3
-                                    text-black
+                                    text-white
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-blue-300
@@ -401,7 +401,7 @@ const Login = () => {
                                         rounded-md
                                         py-2
                                         px-3
-                                        text-black
+                                        text-white
                                         focus:outline-none
                                         focus:ring-2
                                         focus:ring-blue-300
@@ -419,7 +419,7 @@ const Login = () => {
                                             right-3
                                             top-3
                                             cursor-pointer
-                                            text-black
+                                            text-white
                                         "
                                     />
 
@@ -434,7 +434,7 @@ const Login = () => {
                                             right-3
                                             top-3
                                             cursor-pointer
-                                            text-black
+                                            text-white
                                         "
                                     />
 
@@ -469,7 +469,7 @@ const Login = () => {
                                     rounded-md
                                     py-2
                                     px-3
-                                    text-black
+                                    text-white
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-blue-300

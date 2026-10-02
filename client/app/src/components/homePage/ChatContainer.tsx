@@ -2,7 +2,10 @@
 import React, { useEffect, useRef } from 'react'
 import assets, { imagesDummyData, User } from '../../assets/assets'
 import Image from 'next/image'
+import { useDispatch, useSelector } from 'react-redux'
 import { format } from 'date-fns'
+import { getUserConversation } from '../../store/async/conversationAsync'
+import { getAllMessages } from '../../store/async/messageAsync'
 type Props = {
     selectedUser: User | null
     setSelectedUser: (user: User | null) => void
@@ -10,6 +13,10 @@ type Props = {
 
 
 const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
+    const dispatch = useDispatch()
+    const { user } = useSelector((state: any) => state.auth);
+    const { selectedConversation } = useSelector((state: any) => state.conversations);
+    const { messages } = useSelector((state: any) => state.messages);
 
     const scrollEnd = React.useRef<HTMLDivElement>(null)
     useEffect(() => {
@@ -17,6 +24,22 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             scrollEnd.current.scrollIntoView({ behavior: "smooth" })
         }
     }, [])
+
+
+
+    //getting the user conversation when user click on the user from the list
+    useEffect(() => {
+        if (selectedUser && user) {
+            dispatch(getUserConversation(user._id, selectedUser._id));
+        }
+    }, [selectedUser, user])
+
+    //getting all messages of the selected conversation for selected User
+    useEffect(() => {
+        if (selectedConversation) {
+            dispatch(getAllMessages(selectedConversation._id));
+        }
+    }, [selectedConversation])
 
     return selectedUser ? (
         <div className="h-full flex flex-col backdrop-blur-lg bg-white/5 rounded-lg overflow-hidden">
@@ -69,10 +92,10 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             {/* Chat Messages container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-                {imagesDummyData.map((msg, index) => {
+                {messages.map((msg, index) => {
                     console.log("mesage is:", msg)
                     const isSender =
-                        msg.senderId === "680f50aaf10f3cd28382ecf2"
+                        msg.senderId === user._id
 
                     return (
                         <div
@@ -84,7 +107,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                             {/* Message Content */}
                             <div className="max-w-[75%] md:max-w-[60%]">
 
-                                {msg.image ? (
+                                {msg?.image ? (
                                     <Image
                                         src={msg.image}
                                         alt="message image"

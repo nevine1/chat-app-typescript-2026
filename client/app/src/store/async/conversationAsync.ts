@@ -41,12 +41,16 @@ export const getUserConversation = (senderId: string, receiverId: string) => asy
     dispatch(setConversationsLoading(true));
     dispatch(setConversationsError(null));
     try {
-        const res = await axios.get(`${backUrl}/conversations/getConversation`,
+        const res = await axios.post(`${backUrl}/conversations/getConversation`,
             {
-                params: { senderId, receiverId },
+                senderId,
+                receiverId
+            },
+            {
                 withCredentials: true
             }
         );
+
         if (res.data.success) {
             dispatch(setSelectedConversation(res.data.data));
         } else {
@@ -61,7 +65,7 @@ export const getUserConversation = (senderId: string, receiverId: string) => asy
 }
 
 // crreate a new conversation
-export const createConversation =
+/* export const createConversation =
     (senderId: string, receiverId: string) =>
         async (dispatch: any) => {
 
@@ -95,4 +99,4 @@ export const createConversation =
             } finally {
                 dispatch(setConversationsLoading(false));
             }
-        };
+        }; */

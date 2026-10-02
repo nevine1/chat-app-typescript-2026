@@ -25,38 +25,38 @@ export const createNewConversation = async (req: Request, res: Response): Promis
 
 };
 
-export const getUserConversation = async (req: Request, res: Response): Promise<void> => {
+export const getUserConversations = async (req: Request, res: Response): Promise<void> => {
     try {
         const { senderId, receiverId } = req.body;
 
-        const conversation = await Conversation.findOne({
+        let conversation = await Conversation.findOne({
             members: { $all: [senderId, receiverId] }
-        }).sort({ createdAt: -1 });
+        });
 
         if (!conversation) {
-            const converesation = new Conversation({
-                members: [req.body.senderId, req.body.receiverId]
+            conversation = await Conversation.create({
+                members: [senderId, receiverId]
             });
-            await converesation.save();
+
             return res.status(201).json({
                 success: true,
                 message: "New conversation created successfully",
-                data: converesation
-            });
-        } else {
-            return res.status(200).json({
-                success: true,
-                message: "Conversation retrieved successfully",
                 data: conversation
             });
         }
 
+        return res.status(200).json({
+            success: true,
+            message: "Conversation retrieved successfully",
+            data: conversation
+        });
+
     } catch (err) {
         res.status(500).json({
+            success: false,
             error: "Failed to retrieve conversation"
         });
     }
-
 };
 
 export const getAllConversations = async (req: Request, res: Response): Promise<void> => {
