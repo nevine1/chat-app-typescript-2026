@@ -17,12 +17,14 @@ export interface UsersList {
 
 export interface Message {
     senderId: string;
+    receiverId: string;
     conversationId: string;
     text: string;
     timestamp: Date;
 }
 
 export interface Conversation {
+    conversationId: string;
     members: string[];
     lastMessage?: Message;
     createdAt: Date;

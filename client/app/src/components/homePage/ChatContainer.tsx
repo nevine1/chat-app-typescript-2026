@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { format } from 'date-fns'
 import { getUserConversation } from '../../store/async/conversationAsync'
 import { getAllMessages } from '../../store/async/messageAsync'
+import { createNewMessage } from '../../store/async/messageAsync'
 type Props = {
     selectedUser: User | null
     setSelectedUser: (user: User | null) => void
@@ -13,7 +14,8 @@ type Props = {
 
 
 const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    const [message, setMessage] = React.useState<string>("");
     const { user } = useSelector((state: any) => state.auth);
     const { selectedConversation } = useSelector((state: any) => state.conversations);
     const { messages } = useSelector((state: any) => state.messages);
@@ -40,6 +42,27 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             dispatch(getAllMessages(selectedConversation._id));
         }
     }, [selectedConversation])
+
+    //sending the mesasge to the selected user 
+    const sendMessage = () => {
+
+        try {
+            console.log("selectedConversation:", selectedConversation);
+            if (message.trim() && selectedUser && user && selectedConversation) {
+                dispatch(createNewMessage({
+                    conversationId: selectedConversation?._id,
+                    senderId: user._id,
+                    receiverId: selectedUser._id,
+                    text: message.trim()
+                }));
+                setMessage("");
+            }
+        } catch (err) {
+            throw new Error("Failed to send message", err);
+        }
+
+    }
+
 
     return selectedUser ? (
         <div className="h-full flex flex-col backdrop-blur-lg bg-white/5 rounded-lg overflow-hidden">
@@ -94,8 +117,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                 {messages.map((msg, index) => {
                     console.log("mesage is:", msg)
-                    const isSender =
-                        msg.senderId === user._id
+                    const isSender = user ? msg.senderId === user._id : false
 
                     return (
                         <div
@@ -134,8 +156,8 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 <Image
                                     src={
                                         isSender
-                                            ? "/images/profile_richard.png"
-                                            : "/images/profile_martin.png"
+                                            ? `${user?.profilePic}` || "/images/default-profile.png"
+                                            : `${selectedUser?.profilePic}` || "/images/default-profile.png"
                                     }
                                     alt="user"
                                     width={28}
@@ -165,6 +187,8 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         type="text"
                         placeholder="Type a message..."
                         className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                     />
                     <input
                         type="file"
@@ -190,6 +214,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         width={32}
                         height={32}
                         className="cursor-pointer"
+                        onClick={sendMessage}
                     />
                 </div>
                 <div ref={scrollEnd}></div>
