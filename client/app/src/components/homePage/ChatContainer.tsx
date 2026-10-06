@@ -3,10 +3,13 @@ import React, { useEffect, useRef } from 'react'
 import assets, { imagesDummyData, User } from '../../assets/assets'
 import Image from 'next/image'
 import { useDispatch, useSelector } from 'react-redux'
+import axios from 'axios'
+import { Message } from '../../imports/types'
 import { format } from 'date-fns'
 import { getUserConversation } from '../../store/async/conversationAsync'
-import { getAllMessages } from '../../store/async/messageAsync'
-import { createNewMessage } from '../../store/async/messageAsync'
+import { getAllMessages, createNewMessage } from '../../store/async/messageAsync'
+
+
 type Props = {
     selectedUser: User | null
     setSelectedUser: (user: User | null) => void
@@ -21,13 +24,13 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     const { messages } = useSelector((state: any) => state.messages);
 
     const scrollEnd = React.useRef<HTMLDivElement>(null)
+
+
     useEffect(() => {
         if (scrollEnd.current) {
-            scrollEnd.current.scrollIntoView({ behavior: "smooth" })
+            scrollEnd.current.scrollIntoView({ behavior: "smooth" });
         }
-    }, [])
-
-
+    }, [messages]);
 
     //getting the user conversation when user click on the user from the list
     useEffect(() => {
@@ -45,16 +48,14 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
     //sending the mesasge to the selected user 
     const sendMessage = () => {
-
         try {
-            console.log("selectedConversation:", selectedConversation);
+
             if (message.trim() && selectedUser && user && selectedConversation) {
                 dispatch(createNewMessage({
-                    conversationId: selectedConversation?._id,
-                    senderId: user._id,
-                    receiverId: selectedUser._id,
+                    senderId: user?._id,
+                    receiverId: selectedUser?._id,
                     text: message.trim()
-                }));
+                }, selectedConversation?._id));
                 setMessage("");
             }
         } catch (err) {
@@ -62,6 +63,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
         }
 
     }
+
 
 
     return selectedUser ? (
@@ -113,7 +115,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             </div>
 
             {/* Chat Messages container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y p-4 space-y-4">
 
                 {messages.map((msg, index) => {
                     console.log("mesage is:", msg)

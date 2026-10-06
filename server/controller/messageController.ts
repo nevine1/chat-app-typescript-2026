@@ -12,12 +12,18 @@ export const createNewMessage = async (
         const { conversationId } = req.params;
         const { senderId, receiverId, text } = req.body;
 
-        const newMessage = new Message({
+        const newMessage = await Message.create({
             conversationId,
             senderId,
             receiverId,
             text
         });
+        /* const newMessage = new Message({
+            conversationId,
+            senderId,
+            receiverId,
+            text
+        }); */
 
         await newMessage.save();
 
