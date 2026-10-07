@@ -11,7 +11,13 @@ export const createNewMessage = async (
     try {
         const { conversationId } = req.params;
         const { senderId, receiverId, text } = req.body;
+        const imageFile = req.file; // Assuming you're using multer for file uploads
 
+
+        //saving the image file path if an image is uploaded
+        if (imageFile) {
+            newMessage.image = imageFile.path; // Save the file path to the message document
+        }
         const newMessage = await Message.create({
             conversationId,
             senderId,
@@ -24,6 +30,7 @@ export const createNewMessage = async (
             receiverId,
             text
         }); */
+
 
         await newMessage.save();
 

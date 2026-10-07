@@ -3,8 +3,6 @@ import React, { useEffect, useRef } from 'react'
 import assets, { imagesDummyData, User } from '../../assets/assets'
 import Image from 'next/image'
 import { useDispatch, useSelector } from 'react-redux'
-import axios from 'axios'
-import { Message } from '../../imports/types'
 import { format } from 'date-fns'
 import { getUserConversation } from '../../store/async/conversationAsync'
 import { getAllMessages, createNewMessage } from '../../store/async/messageAsync'
@@ -22,10 +20,13 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     const { user } = useSelector((state: any) => state.auth);
     const { selectedConversation } = useSelector((state: any) => state.conversations);
     const { messages } = useSelector((state: any) => state.messages);
+    const [image, setImage] = React.useState<File | null>(null);
+    const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 
     const scrollEnd = React.useRef<HTMLDivElement>(null)
 
 
+    //scroll to the end of the chat when new message is added
     useEffect(() => {
         if (scrollEnd.current) {
             scrollEnd.current.scrollIntoView({ behavior: "smooth" });
@@ -65,9 +66,19 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     }
 
 
+    //selecting the image from the gallery and setting the image preview
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImage(file);
+            const imageUrl = URL.createObjectURL(file);
+            setImagePreview(imageUrl);
+
+        }
+    };
 
     return selectedUser ? (
-        <div className="h-full flex flex-col backdrop-blur-lg bg-white/5 rounded-lg overflow-hidden">
+        <div className="h-full min-h-0 flex flex-col backdrop-blur-lg bg-white/5 rounded-lg overflow-hidden">
 
             {/* Header */}
             <div className="flex items-center gap-3 p-4 border-b border-[#2B2D31]">
@@ -115,7 +126,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             </div>
 
             {/* Chat Messages container */}
-            <div className="flex-1 overflow-y p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
                 {messages.map((msg, index) => {
                     console.log("mesage is:", msg)
@@ -178,6 +189,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         </div>
                     )
                 })}
+                <div ref={scrollEnd}></div>
             </div>
 
             {/* Input Area */}
@@ -191,6 +203,11 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                sendMessage();
+                            }
+                        }}
                     />
                     <input
                         type="file"
@@ -198,6 +215,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         accept="image/png, image/jpeg"
                         className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
                         hidden
+                        onChange={handleImageChange}
                     />
                     <label htmlFor='image'>
                         <Image
@@ -219,7 +237,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         onClick={sendMessage}
                     />
                 </div>
-                <div ref={scrollEnd}></div>
+
             </div>
         </div>
     ) : (
