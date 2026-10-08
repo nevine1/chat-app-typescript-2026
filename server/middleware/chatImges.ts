@@ -12,11 +12,11 @@ cloudinary.config({
 // Create a Cloudinary storage instance
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    folder: "user_profiles", // Specify the folder in Cloudinary where files will be stored
+    folder: "chat_images", // Specify the folder in Cloudinary where files will be stored
     allowedFormats: ["jpg", "png", "gif"],
 });
 
 
-const upload = multer({ storage: storage });
+const uploadChatImages = multer({ storage: storage });
 
-export default upload; 
+export default uploadChatImages; 

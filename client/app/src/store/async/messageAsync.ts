@@ -16,13 +16,21 @@ export const createNewMessage =
         dispatch(setMessagesLoading(true));
 
         try {
+            const formData = new FormData();
+            formData.append('senderId', messageData.senderId);
+            formData.append('receiverId', messageData.receiverId);
+
+            if (messageData.text) {
+                formData.append('text', messageData.text);
+            }
+            if (messageData.image instanceof File) {
+                formData.append('image', messageData.image);
+            }
             const res = await axios.post(
                 `${backURL}/messages/sendMessage/${conversationId}`,
-                messageData,
+                formData,
                 {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+
                     withCredentials: true,
                 }
             );

@@ -22,6 +22,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     const { messages } = useSelector((state: any) => state.messages);
     const [image, setImage] = React.useState<File | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [editMassage, setEditMassage] = React.useState<boolean>(false);
 
     const scrollEnd = React.useRef<HTMLDivElement>(null)
 
@@ -51,13 +52,17 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     const sendMessage = () => {
         try {
 
-            if (message.trim() && selectedUser && user && selectedConversation) {
+            if ((message.trim() || image) && selectedUser && user && selectedConversation) {
                 dispatch(createNewMessage({
                     senderId: user?._id,
                     receiverId: selectedUser?._id,
-                    text: message.trim()
+                    text: message.trim(),
+                    image: image || undefined,
+                    timestamp: new Date()
                 }, selectedConversation?._id));
                 setMessage("");
+                setImage(null);
+                setImagePreview(null);
             }
         } catch (err) {
             throw new Error("Failed to send message", err);
@@ -140,27 +145,36 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                         >
 
                             {/* Message Content */}
-                            <div className="max-w-[75%] md:max-w-[60%]">
-
-                                {msg?.image ? (
+                            <div
+                                className={`max-w-[75%] md:max-w-[60%] overflow-hidden rounded-2xl
+                                        ${isSender
+                                        ? "bg-violet-500/30 rounded-bl-none"
+                                        : "bg-gray-700 rounded-br-none"
+                                    }`}
+                            >
+                                {/* Image */}
+                                {msg?.image && (
                                     <Image
-                                        src={msg.image}
+                                        src={typeof msg.image === "string" ? msg.image : ""}
                                         alt="message image"
-                                        width={240}
-                                        height={240}
-                                        className="rounded-lg border border-gray-600 overflow-hidden"
+                                        width={300}
+                                        height={300}
+                                        className="w-full max-w-[300px] max-h-[300px] object-cover"
                                     />
-                                ) : (
-                                    <p
-                                        className={`p-3 text-sm md:text-base text-white break-words rounded-2xl
-                                            ${isSender
-                                                ? "bg-violet-500/30 rounded-bl-none"
-                                                : "bg-gray-700 rounded-br-none"
-                                            }`}
-                                    >
-                                        {msg.text}
-                                    </p>
                                 )}
+
+                                {/* Text */}
+                                <div className="group relative hover:bg-gray-600/20 transition-all duration-300">
+                                    {msg?.text && (
+                                        <p className="px-4 py-3 text-sm md:text-base text-white break-words">
+                                            {msg.text}
+                                        </p>
+                                    )}
+                                    <div className="absolute bottom-0 right-0 w-auto h-auto  mt-4 p-1 text-xs bg-white  opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <p onClick={() => setEditMassage(true)}>Edit</p>
+                                        <p>Delete</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Avatar + Time */}
@@ -179,11 +193,11 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 />
 
                                 <span className="mt-1 whitespace-nowrap">
-                                    {/* {format(new Date(msg.createdAt), "h:mm a")
+                                    {format(new Date(msg.createdAt), "h:mm a")
 
                                     }
 
-                                    */}
+
                                 </span>
                             </div>
                         </div>
@@ -219,7 +233,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                     />
                     <label htmlFor='image'>
                         <Image
-                            src={assets.gallery_icon || ""}
+                            src={imagePreview || assets.gallery_icon || ""}
                             alt="gallery"
                             width={20}
                             height={20}

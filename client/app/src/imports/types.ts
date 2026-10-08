@@ -20,6 +20,7 @@ export interface Message {
     receiverId: string;
     conversationId: string;
     text: string;
+    image?: File | string;
     timestamp: Date;
 }
 

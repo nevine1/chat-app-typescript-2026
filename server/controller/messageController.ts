@@ -15,14 +15,13 @@ export const createNewMessage = async (
 
 
         //saving the image file path if an image is uploaded
-        if (imageFile) {
-            newMessage.image = imageFile.path; // Save the file path to the message document
-        }
+
         const newMessage = await Message.create({
             conversationId,
             senderId,
             receiverId,
-            text
+            text,
+            image: imageFile ? imageFile.path : undefined
         });
         /* const newMessage = new Message({
             conversationId,
