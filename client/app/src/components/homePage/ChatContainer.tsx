@@ -22,7 +22,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     const { messages } = useSelector((state: any) => state.messages);
     const [image, setImage] = React.useState<File | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [editMassage, setEditMassage] = React.useState<boolean>(false);
+    const [editMsg, setEditMsg] = React.useState<boolean>(false);
 
     const scrollEnd = React.useRef<HTMLDivElement>(null)
 
@@ -164,15 +164,24 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 )}
 
                                 {/* Text */}
+
                                 <div className="group relative hover:bg-gray-600/20 transition-all duration-300">
                                     {msg?.text && (
                                         <p className="px-4 py-3 text-sm md:text-base text-white break-words">
                                             {msg.text}
                                         </p>
                                     )}
-                                    <div className="absolute bottom-0 right-0 w-auto h-auto  mt-4 p-1 text-xs bg-white  opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <p onClick={() => setEditMassage(true)}>Edit</p>
-                                        <p>Delete</p>
+
+                                    <div className="absolute bottom-0 right-0 z-50 min-w-20 rounded-md bg-gray-800 p-2 text-xs text-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">
+                                        <p
+                                            onClick={() => setEditMsg(true)}
+                                            className="cursor-pointer rounded px-2  hover:bg-gray-700"
+                                        >
+                                            Edit
+                                        </p>
+                                        <p className="cursor-pointer rounded px-2  hover:bg-gray-700">
+                                            Delete
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -211,18 +220,36 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                 <div className="flex items-center gap-3 bg-[#1F2937] rounded-full px-4 py-2">
 
-                    <input
-                        type="text"
-                        placeholder="Type a message..."
-                        className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                sendMessage();
-                            }
-                        }}
-                    />
+                    {
+                        editMsg ? (
+                            msg?.text && (
+                                <input
+                                    type="text"
+                                    placeholder="Type a message..."
+                                    className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
+                                    value={msg.text}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            sendMessage();
+                                        }
+                                    }}
+                                />
+                            )
+                        ) : (<input
+                            type="text"
+                            placeholder="Type a message..."
+                            className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    sendMessage();
+                                }
+                            }}
+                        />)
+                    }
+
                     <input
                         type="file"
                         id="image"

@@ -75,3 +75,28 @@ export const getAllMessages = (conversationId: string) => async (dispatch, getSt
         ));
     }
 }
+
+//upateing message 
+export const editMessage = (messageId: string, text: string) => async (dispatch, getState) => {
+    try {
+        dispatch(setMessagesLoading(true));
+        const formData = new FormData();
+        formData.append('text', text);
+        if (Message.image instanceof File) {
+            formData.append('image', Message.image);
+        }
+        const res = await axios.put(`${backURL}/messages/updateMessage/${messageId}`, formData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        });
+        dispatch(setMessages(res.data.data));
+    } catch (err) {
+        dispatch(setMessagesError(
+            err instanceof Error
+                ? err.message
+                : 'Failed to update message'
+        ));
+    }
+}
