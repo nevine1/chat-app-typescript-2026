@@ -29,6 +29,16 @@ const messagesSlice = createSlice({
         setMessages: (state: MessagesState, action: PayloadAction<Message[]>) => {
             state.messages = action.payload;
         },
+        updateMessage: (state: MessagesState, action: PayloadAction<Message>) => {
+            const updatedMessage = action.payload;
+            /*  const index = state.messages.findIndex((message) => message._id === updatedMessage._id);
+             if (index !== -1) {
+                 state.messages[index] = updatedMessage;
+             } */
+            state.messages = state.messages.map((message) =>
+                message._id === updatedMessage._id ? updatedMessage : message
+            );
+        },
         setMessagesError: (state: MessagesState, action: PayloadAction<string | null>) => {
             state.error = action.payload;
         }
@@ -36,4 +46,4 @@ const messagesSlice = createSlice({
 })
 
 export default messagesSlice.reducer;
-export const { setMessagesLoading, setMessages, setMessagesError, addNewMessage } = messagesSlice.actions;
+export const { setMessagesLoading, setMessages, setMessagesError, addNewMessage, updateMessage } = messagesSlice.actions;

@@ -3,7 +3,8 @@ import {
     setMessagesLoading,
     setMessages,
     addNewMessage,
-    setMessagesError
+    setMessagesError,
+    updateMessage
 } from '../slices/messagesSlice';
 
 import { Message } from '../../imports/types';
@@ -77,21 +78,21 @@ export const getAllMessages = (conversationId: string) => async (dispatch, getSt
 }
 
 //upateing message 
-export const editMessage = (messageId: string, text: string) => async (dispatch, getState) => {
+export const editMessage = (messageId: string, text: string, image: File | null) => async (dispatch, getState) => {
     try {
         dispatch(setMessagesLoading(true));
         const formData = new FormData();
         formData.append('text', text);
-        if (Message.image instanceof File) {
-            formData.append('image', Message.image);
+
+        if (image) {
+            formData.append('image', image);
         }
         const res = await axios.put(`${backURL}/messages/updateMessage/${messageId}`, formData, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
+
             withCredentials: true,
         });
-        dispatch(setMessages(res.data.data));
+        dispatch(updateMessage(res.data.data));
+
     } catch (err) {
         dispatch(setMessagesError(
             err instanceof Error
