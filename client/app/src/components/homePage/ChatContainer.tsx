@@ -1,11 +1,14 @@
 
 "use client";
 
-import React, { useEffect } from "react";
-import assets, { User } from "../../assets/assets";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
+import { HiOutlineDotsVertical } from "react-icons/hi";
+
+import assets, { User } from "../../assets/assets";
+
 import { getUserConversation } from "../../store/async/conversationAsync";
 import {
     getAllMessages,
@@ -19,50 +22,100 @@ type Props = {
 };
 
 const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<any>();
 
-    const [message, setMessage] = React.useState<string>("");
-    const [image, setImage] = React.useState<File | null>(null);
-    const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [message, setMessage] = useState("");
+    const [image, setImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    const [editMsg, setEditMsg] = React.useState<boolean>(false);
-    const [editingMessageId, setEditingMessageId] =
-        React.useState<string | null>(null);
+    const [editMsg, setEditMsg] = useState(false);
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(
+        null
+    );
+
+    // Controls which message's three-dot menu is open.
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     const { user } = useSelector((state: any) => state.auth);
+
     const { selectedConversation } = useSelector(
         (state: any) => state.conversations
     );
-    const { messages } = useSelector((state: any) => state.messages);
 
-    const scrollEnd = React.useRef<HTMLDivElement>(null);
+    const { messages = [] } = useSelector(
+        (state: any) => state.messages
+    );
 
-    // Scroll to the latest message.
+    const scrollEnd = useRef<HTMLDivElement>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+
+
     useEffect(() => {
-        scrollEnd.current?.scrollIntoView({ behavior: "smooth" });
+        scrollEnd.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
     }, [messages]);
 
-    // Get the conversation between the logged-in user and selected user.
     useEffect(() => {
-        if (selectedUser && user) {
-            dispatch(getUserConversation(user._id, selectedUser._id));
+        if (selectedUser?._id && user?._id) {
+            dispatch(
+                getUserConversation(user._id, selectedUser._id)
+            );
         }
-    }, [selectedUser, user, dispatch]);
+    }, [selectedUser?._id, user?._id, dispatch]);
 
-    // Get all messages in the selected conversation.
     useEffect(() => {
-        if (selectedConversation) {
+        if (selectedConversation?._id) {
             dispatch(getAllMessages(selectedConversation._id));
         }
-    }, [selectedConversation, dispatch]);
+    }, [selectedConversation?._id, dispatch]);
+
+    useEffect(() => {
+        setEditMsg(false);
+        setEditingMessageId(null);
+        setMessage("");
+        setImage(null);
+        setImagePreview(null);
+        setOpenMenuId(null);
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+        }
+    }, [selectedUser?._id]);
+
+    // Release temporary browser image URLs when they are replaced.
+    const previousPreviewRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        const previousPreview = previousPreviewRef.current;
+
+        if (
+            previousPreview &&
+            previousPreview.startsWith("blob:")
+        ) {
+            URL.revokeObjectURL(previousPreview);
+        }
+
+        previousPreviewRef.current = imagePreview;
+
+        return () => {
+            if (
+                imagePreview &&
+                imagePreview.startsWith("blob:")
+            ) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
 
     // Send a new message.
     const sendMessage = () => {
         if (
             (!message.trim() && !image) ||
-            !selectedUser ||
-            !user ||
-            !selectedConversation
+            !selectedUser?._id ||
+            !user?._id ||
+            !selectedConversation?._id
         ) {
             return;
         }
@@ -83,52 +136,70 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
         setMessage("");
         setImage(null);
         setImagePreview(null);
+        setOpenMenuId(null);
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+        }
     };
 
-    // Select an image and display its preview.
-    const handleImageChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
-        if (file) {
-            setImage(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
+        if (!file) return;
 
-        // Allows selecting the same file again if needed.
-        e.target.value = "";
-    };
-
-    // Enter edit mode for the message that was clicked.
-    const handleEditClick = (msg: any) => {
-        setEditMsg(true);
-
-        // Save the ID of the specific message being edited.
-        setEditingMessageId(msg._id);
-
-        // Put the existing text into the input.
-        setMessage(msg.text || "");
-
-        // No new image has been selected yet.
-        setImage(null);
-
-        // Display the existing image, if there is one.
-        setImagePreview(
-            typeof msg.image === "string" && msg.image
-                ? msg.image
-                : null
-        );
-    };
-
-    // Save the edited text and/or image.
-    const handleUpdateMessage = () => {
-        if (!editingMessageId) {
+        // Only accept the image types offered by the input.
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
+            e.target.value = "";
             return;
         }
 
-        // Do not allow an empty message with no image.
-        if (!message.trim() && !image && !imagePreview) {
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
+
+        // Allow the same file to be selected again.
+        e.target.value = "";
+    };
+
+    // Open edit mode for a specific message.
+    const handleEditClick = (msg: any) => {
+        const senderId =
+            typeof msg.senderId === "string"
+                ? msg.senderId
+                : msg.senderId?._id;
+
+        // Only the sender can edit their own messages.
+        if (!user?._id || senderId !== user._id) {
+            return;
+        }
+
+        setEditMsg(true);
+        setEditingMessageId(msg._id);
+        setMessage(msg.text || "");
+        setImage(null);
+
+        // Keep the existing image visible until a replacement is selected.
+        setImagePreview(
+            typeof msg.image === "string" && msg.image.trim()
+                ? msg.image
+                : null
+        );
+
+        setOpenMenuId(null);
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+        }
+    };
+
+    // Save changes to the selected message.
+    const handleUpdateMessage = () => {
+        if (!editingMessageId) return;
+
+        // An edited message must contain text or an image.
+        // The existing image also counts if it has not been replaced.
+        if (!message.trim() && !imagePreview) {
             return;
         }
 
@@ -140,21 +211,31 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             )
         );
 
-        // Reset the input after requesting the update.
+        // Exit edit mode.
         setEditMsg(false);
         setEditingMessageId(null);
         setMessage("");
         setImage(null);
         setImagePreview(null);
+        setOpenMenuId(null);
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+        }
     };
 
-    // Cancel editing without saving.
+    // Cancel without sending an update request.
     const handleCancelEdit = () => {
         setEditMsg(false);
         setEditingMessageId(null);
         setMessage("");
         setImage(null);
         setImagePreview(null);
+        setOpenMenuId(null);
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+        }
     };
 
     const handleSubmit = () => {
@@ -165,33 +246,43 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
         }
     };
 
-    return selectedUser ? (
-        <div className="h-full min-h-0 flex flex-col backdrop-blur-lg bg-white/5 rounded-lg overflow-hidden">
+    // Support senderId as either a string or a populated user object.
+    const isOwnMessage = (msg: any) => {
+        const senderId =
+            typeof msg.senderId === "string"
+                ? msg.senderId
+                : msg.senderId?._id;
 
+        return Boolean(user?._id && senderId === user._id);
+    };
+
+    return selectedUser ? (
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-lg">
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-[#2B2D31]">
+            <div className="flex items-center gap-3 border-b border-[#2B2D31] p-4">
                 <Image
                     src={
                         selectedUser.profilePic ||
                         "/images/default-profile.png"
                     }
-                    alt="avatar"
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover"
+                    alt="User avatar"
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full object-cover"
                 />
 
-                <div className="flex items-center gap-2 min-w-0">
-                    <p className="text-white text-sm md:text-base truncate font-medium">
-                        {selectedUser.name || "Nevine"}
+                <div className="flex min-w-0 items-center gap-2">
+                    <p className="truncate text-sm font-medium text-white md:text-base">
+                        {selectedUser.name || "User"}
                     </p>
-                    <span className="h-2 w-2 rounded-full bg-green-500" />
+
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
                 </div>
 
-                <div className="flex items-center gap-4 ml-auto">
+                <div className="ml-auto flex items-center gap-4">
                     <Image
                         src={assets.arrow_icon || ""}
-                        alt="back"
+                        alt="Back"
                         width={20}
                         height={20}
                         className="cursor-pointer md:hidden"
@@ -200,7 +291,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                     <Image
                         src={assets.help_icon || ""}
-                        alt="help"
+                        alt="Help"
                         width={20}
                         height={20}
                         className="cursor-pointer"
@@ -209,10 +300,23 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 min-h-0 space-y-4 overflow-y-auto p-4">
                 {messages.map((msg: any, index: number) => {
-                    const isSender =
-                        user && msg.senderId === user._id;
+                    const isSender = isOwnMessage(msg);
+
+                    const hasImage =
+                        typeof msg.image === "string" &&
+                        msg.image.trim() !== "";
+
+                    const hasText =
+                        typeof msg.text === "string" &&
+                        msg.text.trim() !== "";
+
+                    const menuIsOpen = openMenuId === msg._id;
+
+                    const timestamp = msg.createdAt
+                        ? new Date(msg.createdAt)
+                        : null;
 
                     return (
                         <div
@@ -220,55 +324,101 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                             className={`flex items-end gap-2 md:gap-3 ${!isSender ? "flex-row-reverse" : ""
                                 }`}
                         >
-                            {/* Message bubble */}
+                            {/* Message bubble and its action menu */}
                             <div
-                                className={`max-w-[75%] md:max-w-[60%] overflow-hidden rounded-2xl ${isSender
-                                    ? "bg-violet-500/30 rounded-bl-none"
-                                    : "bg-gray-700 rounded-br-none"
+                                className={`group relative min-w-0 max-w-[75%] md:max-w-[60%] ${isSender ? "mr-2" : "ml-2"
                                     }`}
                             >
-                                {/* Message image */}
-                                {typeof msg.image === "string" &&
-                                    msg.image.trim() !== "" && (
+                                <div
+                                    className={`overflow-hidden rounded-2xl ${isSender
+                                        ? "rounded-bl-none bg-violet-500/30"
+                                        : "rounded-br-none bg-gray-700"
+                                        }`}
+                                >
+                                    {/* Display the saved message image.
+                                        The edit preview belongs in the
+                                        input area, not every message. */}
+                                    {hasImage && (
                                         <Image
                                             src={msg.image}
-                                            alt="message image"
-                                            width={300}
-                                            height={300}
-                                            className="w-full max-w-[300px] max-h-[300px] object-cover"
+                                            alt="Message attachment"
+                                            width={400}
+                                            height={400}
+                                            unoptimized
+                                            className="h-auto max-h-[300px] w-auto max-w-full object-contain"
                                         />
                                     )}
 
-                                {/* Message text and menu */}
-                                <div className="group relative hover:bg-gray-600/20 transition-all duration-300">
-                                    {msg.text && (
-                                        <p className="px-4 py-3 text-sm md:text-base text-white break-words">
+                                    {hasText && (
+                                        <p className="whitespace-pre-wrap break-words px-4 py-3 text-sm text-white md:text-base">
                                             {msg.text}
                                         </p>
                                     )}
-
-                                    {/* Only allow editing your own messages */}
-                                    {isSender && (
-                                        <div className="absolute bottom-0 right-0 z-50 min-w-20 rounded-md bg-gray-800 p-2 text-xs text-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">
-                                            <p
-                                                onClick={() =>
-                                                    handleEditClick(msg)
-                                                }
-                                                className="cursor-pointer rounded px-2 py-1 hover:bg-gray-700"
-                                            >
-                                                Edit
-                                            </p>
-
-                                            <p className="cursor-pointer rounded px-2 py-1 hover:bg-gray-700">
-                                                Delete
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
+
+                                {/* Three-dot button: visible on hover
+                                    or keyboard focus, and stays visible
+                                    while its menu is open. */}
+                                {isSender && (
+                                    <div
+                                        className={`absolute -right-3 top-0 z-20 ${menuIsOpen
+                                            ? "visible opacity-100"
+                                            : "invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                                            } transition-opacity duration-150`}
+                                    >
+                                        <button
+                                            type="button"
+                                            aria-label="Message options"
+                                            aria-haspopup="menu"
+                                            aria-expanded={menuIsOpen}
+                                            onClick={() =>
+                                                setOpenMenuId(
+                                                    menuIsOpen
+                                                        ? null
+                                                        : msg._id
+                                                )
+                                            }
+                                            className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                        >
+                                            <HiOutlineDotsVertical
+                                                size={18}
+                                            />
+                                        </button>
+
+                                        {menuIsOpen && (
+                                            <div
+                                                role="menu"
+                                                className="absolute right-0 top-9 z-30 min-w-32 rounded-lg border border-gray-700 bg-gray-800 p-1 text-sm text-white shadow-xl"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() =>
+                                                        handleEditClick(msg)
+                                                    }
+                                                    className="w-full rounded-md px-3 py-2 text-left hover:bg-gray-700"
+                                                >
+                                                    Edit
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() =>
+                                                        setOpenMenuId(null)
+                                                    }
+                                                    className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Avatar and time */}
-                            <div className="flex flex-col items-center text-xs text-gray-400">
+                            {/* Avatar and timestamp */}
+                            <div className="flex shrink-0 flex-col items-center text-xs text-gray-400">
                                 <Image
                                     src={
                                         (isSender
@@ -276,18 +426,16 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                             : selectedUser?.profilePic) ||
                                         "/images/default-profile.png"
                                     }
-                                    alt="user"
+                                    alt="User"
                                     width={28}
                                     height={28}
-                                    className="rounded-full object-cover"
+                                    className="h-7 w-7 rounded-full object-cover"
                                 />
 
                                 <span className="mt-1 whitespace-nowrap">
-                                    {msg.createdAt
-                                        ? format(
-                                            new Date(msg.createdAt),
-                                            "h:mm a"
-                                        )
+                                    {timestamp &&
+                                        !Number.isNaN(timestamp.getTime())
+                                        ? format(timestamp, "h:mm a")
                                         : ""}
                                 </span>
                             </div>
@@ -295,18 +443,29 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                     );
                 })}
 
+                {/* Keep the scroll target inside the scrollable area. */}
                 <div ref={scrollEnd} />
             </div>
 
-            {/* Input area */}
-            <div className="p-4 border-t border-[#2B2D31]">
+            {/* Message input */}
+            <div className="border-t border-[#2B2D31] p-4">
                 {editMsg && (
-                    <p className="text-sm text-violet-300 mb-2">
-                        Editing message
-                    </p>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="text-sm text-violet-300">
+                            Editing message
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="text-xs text-gray-300 hover:text-white"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 )}
 
-                <div className="flex items-center gap-3 bg-[#1F2937] rounded-full px-4 py-2">
+                <div className="flex items-center gap-3 rounded-2xl bg-[#1F2937] px-4 py-3">
                     <input
                         type="text"
                         placeholder={
@@ -314,13 +473,11 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 ? "Edit your message..."
                                 : "Type a message..."
                         }
-                        className="flex-1 min-w-0 bg-transparent outline-none text-white placeholder-gray-400 text-sm md:text-base"
+                        className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-gray-400 md:text-base"
                         value={message}
-                        onChange={(e) =>
-                            setMessage(e.target.value)
-                        }
+                        onChange={(e) => setMessage(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === "Enter") {
+                            if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSubmit();
                             }
@@ -332,79 +489,125 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                     />
 
                     <input
+                        ref={imageInputRef}
                         type="file"
-                        id="image"
-                        accept="image/png, image/jpeg"
+                        accept="image/png,image/jpeg"
                         hidden
                         onChange={handleImageChange}
                     />
 
-                    <label htmlFor="image">
+                    <button
+                        type="button"
+                        aria-label={
+                            editMsg
+                                ? "Choose replacement image"
+                                : "Choose image"
+                        }
+                        onClick={() => imageInputRef.current?.click()}
+                        className="shrink-0"
+                    >
                         <Image
                             src={assets.gallery_icon || ""}
                             alt="Choose image"
-                            width={20}
-                            height={20}
+                            width={22}
+                            height={22}
                             className="cursor-pointer"
                         />
-                    </label>
+                    </button>
 
-                    <Image
-                        src={assets.send_button || ""}
-                        alt={editMsg ? "Save changes" : "Send message"}
-                        width={32}
-                        height={32}
-                        className="cursor-pointer"
+                    <button
+                        type="button"
+                        aria-label={
+                            editMsg ? "Save changes" : "Send message"
+                        }
                         onClick={handleSubmit}
-                    />
-
-                    {editMsg && (
-                        <button
-                            type="button"
-                            onClick={handleCancelEdit}
-                            className="text-xs text-gray-300 hover:text-white"
-                        >
-                            Cancel
-                        </button>
-                    )}
+                        disabled={
+                            editMsg
+                                ? !message.trim() && !imagePreview
+                                : !message.trim() && !image
+                        }
+                        className="shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        <Image
+                            src={assets.send_button || ""}
+                            alt={editMsg ? "Save changes" : "Send"}
+                            width={32}
+                            height={32}
+                            className="cursor-pointer"
+                        />
+                    </button>
                 </div>
 
-                {/* Image preview */}
+                {/* Current image or replacement image preview */}
                 {imagePreview && (
-                    <div className="mt-3 flex items-center gap-3">
-                        <Image
-                            src={imagePreview}
-                            alt="Image preview"
-                            width={100}
-                            height={100}
-                            className="rounded-lg object-cover"
-                        />
+                    <div className="mt-3 flex items-start gap-3">
+                        <div className="relative">
+                            <Image
+                                src={imagePreview}
+                                alt={
+                                    image
+                                        ? "Replacement image preview"
+                                        : "Current message image"
+                                }
+                                width={120}
+                                height={120}
+                                unoptimized
+                                className="h-[120px] w-[120px] rounded-lg object-cover"
+                            />
+                        </div>
 
-                        {editMsg && (
-                            <p className="text-xs text-gray-300">
-                                Choose another image above to replace it.
+                        <div className="min-w-0 pt-1">
+                            <p className="text-sm text-gray-200">
+                                {image
+                                    ? "New image selected"
+                                    : editMsg
+                                        ? "Current image"
+                                        : "Image attached"}
                             </p>
-                        )}
+
+                            <p className="mt-1 text-xs text-gray-400">
+                                {editMsg
+                                    ? "Choose another image to replace it."
+                                    : "This image will be sent with your message."}
+                            </p>
+
+                            {image && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setImage(null);
+                                        setImagePreview(null);
+
+                                        if (imageInputRef.current) {
+                                            imageInputRef.current.value = "";
+                                        }
+                                    }}
+                                    className="mt-2 text-xs text-red-300 hover:text-red-200"
+                                >
+                                    Remove selected image
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
         </div>
     ) : (
-        <div className="hidden md:flex flex-col items-center justify-center gap-5 h-full bg-white/10 rounded-lg">
+        <div className="hidden h-full flex-col items-center justify-center gap-5 rounded-lg bg-white/10 md:flex">
             <Image
                 src={assets.logo_icon || ""}
-                alt="logo"
+                alt="Logo"
                 width={80}
                 height={80}
                 className="object-contain"
             />
 
-            <div className="text-center space-y-2">
-                <h2 className="text-white text-2xl font-semibold">
+            <div className="space-y-2 text-center">
+                <h2 className="text-2xl font-semibold text-white">
                     Welcome to Chat
                 </h2>
 
-                <p className="text-gray-300 text-sm">
+                <p className="text-sm text-gray-300">
                     Chat anytime, anywhere
                 </p>
             </div>

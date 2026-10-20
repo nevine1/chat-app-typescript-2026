@@ -2,7 +2,7 @@
 import Conversation from '../models/conversationModel';
 import Message from '../models/messageModel';
 import { Request, Response } from "express";
-
+import mongoose from 'mongoose';
 
 export const createNewMessage = async (
     req: Request,

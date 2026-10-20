@@ -1,7 +1,7 @@
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
-
+import mongoose from 'mongoose';
 // Configure Cloudinary with credentials from environment variables
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
