@@ -4,6 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Message } from '../../imports/types';
 import { RootState } from '../rootRoducer';
 
+
 interface MessagesState {
     messages: Message[];
     isMessagesLoading: boolean;
@@ -39,6 +40,13 @@ const messagesSlice = createSlice({
                 message._id === updatedMessage._id ? updatedMessage : message
             );
         },
+        deleteMessage: (state: MessagesState, action: PayloadAction<Message>) => {
+            const deletedMsg = action.payload;
+
+            state.messages = state.messages.filter(
+                (message: Message) => message._id !== deletedMsg._id
+            );
+        },
         setMessagesError: (state: MessagesState, action: PayloadAction<string | null>) => {
             state.error = action.payload;
         }
@@ -46,4 +54,6 @@ const messagesSlice = createSlice({
 })
 
 export default messagesSlice.reducer;
-export const { setMessagesLoading, setMessages, setMessagesError, addNewMessage, updateMessage } = messagesSlice.actions;
+export const { setMessagesLoading, setMessages,
+    setMessagesError, addNewMessage,
+    updateMessage, deleteMessage } = messagesSlice.actions;

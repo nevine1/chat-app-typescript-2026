@@ -146,3 +146,60 @@ export const editMessage = async (req: Request, res: Response): Promise<void> =>
         });
     }
 };
+
+
+
+
+export const deleteMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { messageId } = req.params;
+        const userId = (req as any).userId;
+
+
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                message: "User is not authorized",
+            });
+            return;
+        }
+
+
+        if (!mongoose.Types.ObjectId.isValid(messageId)) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid message ID",
+            });
+            return;
+        }
+
+        const deletedMsg = await Message.findOneAndDelete({
+            _id: messageId,
+            senderId: userId,
+        });
+
+        if (!deletedMsg) {
+            res.status(404).json({
+                success: false,
+                message: "Message not found or you are not allowed to delete it",
+            });
+            return;
+        }
+
+
+        res.status(200).json({
+            success: true,
+            message: "Message deleted successfully",
+            data: deletedMsg,
+        });
+    } catch (error) {
+        console.error("Error deleting message:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete message",
+        });
+    }
+};
+
+

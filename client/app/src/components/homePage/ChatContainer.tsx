@@ -6,15 +6,15 @@ import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { HiOutlineDotsVertical } from "react-icons/hi";
-
 import assets, { User } from "../../assets/assets";
-
 import { getUserConversation } from "../../store/async/conversationAsync";
 import {
     getAllMessages,
     createNewMessage,
     editMessage,
+    delMessage
 } from "../../store/async/messageAsync";
+import { deleteMessage } from "../../store/slices/messagesSlice";
 
 type Props = {
     selectedUser: User | null;
@@ -256,6 +256,11 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
         return Boolean(user?._id && senderId === user._id);
     };
 
+    const handleDelMessage = (messageId: string) => {
+        dispatch(delMessage(messageId));
+        setOpenMenuId(null);
+    };
+
     return selectedUser ? (
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-lg">
             {/* Header */}
@@ -404,10 +409,9 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                                 <button
                                                     type="button"
                                                     role="menuitem"
-                                                    onClick={() =>
-                                                        setOpenMenuId(null)
-                                                    }
+                                                    onClick={() => handleDelMessage(msg._id)}
                                                     className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
+
                                                 >
                                                     Delete
                                                 </button>

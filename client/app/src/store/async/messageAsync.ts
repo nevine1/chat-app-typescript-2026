@@ -4,7 +4,8 @@ import {
     setMessages,
     addNewMessage,
     setMessagesError,
-    updateMessage
+    updateMessage,
+    deleteMessage
 } from '../slices/messagesSlice';
 
 import { Message } from '../../imports/types';
@@ -78,7 +79,7 @@ export const getAllMessages = (conversationId: string) => async (dispatch, getSt
 }
 
 //upateing message 
-export const editMessage = (messageId: string, text: string, image: File | null) => async (dispatch, getState) => {
+export const editMessage = (messageId: string, text: string, image: File | null) => async (dispatch: any) => {
     try {
         dispatch(setMessagesLoading(true));
         const formData = new FormData();
@@ -101,3 +102,31 @@ export const editMessage = (messageId: string, text: string, image: File | null)
         ));
     }
 }
+
+
+export const delMessage = (messageId: string) => async (dispatch: any) => {
+    try {
+        dispatch(setMessagesLoading(true));
+
+        const res = await axios.delete(
+            `${backURL}/messages/deleteMsg/${messageId}`,
+            {
+                withCredentials: true,
+            }
+        );
+
+        if (res.data.success) {
+            dispatch(deleteMessage(res.data.data));
+        }
+    } catch (err) {
+        dispatch(
+            setMessagesError(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to delete message"
+            )
+        );
+    } finally {
+        dispatch(setMessagesLoading(false));
+    }
+};
