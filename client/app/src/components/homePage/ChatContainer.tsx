@@ -15,6 +15,7 @@ import {
     delMessage
 } from "../../store/async/messageAsync";
 import { deleteMessage } from "../../store/slices/messagesSlice";
+import { TbPicnicTable } from "react-icons/tb";
 
 type Props = {
     selectedUser: User | null;
@@ -22,6 +23,7 @@ type Props = {
 };
 
 const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
+
     const dispatch = useDispatch<any>();
 
     const [message, setMessage] = useState("");
@@ -35,7 +37,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
     // Controls which message's three-dot menu is open.
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
+    const [deleteMsg, setDeleteMsg] = useState<Boolean>(false)
     const { user } = useSelector((state: any) => state.auth);
 
     const { selectedConversation } = useSelector(
@@ -257,9 +259,16 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     };
 
     const handleDelMessage = (messageId: string) => {
+        setDeleteMsg(true)
         dispatch(delMessage(messageId));
         setOpenMenuId(null);
+        setDeleteMsg(false)
     };
+
+
+    const now = new Date();
+
+
 
     return selectedUser ? (
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-lg">
@@ -322,13 +331,20 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                     const timestamp = msg.createdAt
                         ? new Date(msg.createdAt)
                         : null;
-
+                    const now = new Date();
+                    const timeNow = now.getTime();
+                    console.log('time is is', timeNow)
+                    const timeMessage = new Date(msg.createdAt).getTime();
+                    const totalMinuts = (timeNow - timeMessage) / (1000 * 60)
+                    const totalHours = Math.floor(totalMinuts / 60)
+                    console.log('total hours', totalHours)
                     return (
                         <div
                             key={msg._id || index}
                             className={`flex items-end gap-2 md:gap-3 ${!isSender ? "flex-row-reverse" : ""
                                 }`}
                         >
+                            <p></p>
                             {/* Message bubble and its action menu */}
                             <div
                                 className={`group relative min-w-0 max-w-[75%] md:max-w-[60%] ${isSender ? "mr-2" : "ml-2"
@@ -406,15 +422,19 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                                     Edit
                                                 </button>
 
-                                                <button
-                                                    type="button"
-                                                    role="menuitem"
-                                                    onClick={() => handleDelMessage(msg._id)}
-                                                    className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
+                                                {
+                                                    deleteMsg ? (<p>Mage ha deleted</p>) : (
+                                                        <button
+                                                            type="button"
+                                                            role="menuitem"
+                                                            onClick={() => handleDelMessage(msg._id)}
+                                                            className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
 
-                                                >
-                                                    Delete
-                                                </button>
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )
+                                                }
                                             </div>
                                         )}
                                     </div>
@@ -442,6 +462,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                         ? format(timestamp, "h:mm a")
                                         : ""}
                                 </span>
+
                             </div>
                         </div>
                     );

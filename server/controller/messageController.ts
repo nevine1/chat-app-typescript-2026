@@ -12,8 +12,7 @@ export const createNewMessage = async (
         const { conversationId } = req.params;
         const { senderId, receiverId, text } = req.body;
         const imageFile = req.file; // Assuming you're using multer for file uploads
-
-
+        console.log("sent image is", imageFile)
         //saving the image file path if an image is uploaded
 
         const newMessage = await Message.create({
@@ -176,8 +175,8 @@ export const deleteMessage = async (req: Request, res: Response): Promise<void> 
         const deletedMsg = await Message.findOneAndDelete({
             _id: messageId,
             senderId: userId,
-        });
-
+        })
+        console.log('delted message is:', deletedMsg)
         if (!deletedMsg) {
             res.status(404).json({
                 success: false,
