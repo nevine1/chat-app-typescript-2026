@@ -38,6 +38,8 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     // Controls which message's three-dot menu is open.
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [deleteMsg, setDeleteMsg] = useState<Boolean>(false)
+    const [delMsgId, setDelMsgId] = useState<string | null>(null)
+
     const { user } = useSelector((state: any) => state.auth);
 
     const { selectedConversation } = useSelector(
@@ -259,17 +261,18 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
     };
 
     const handleDelMessage = (messageId: string) => {
+        setDelMsgId(messageId)
+        console.log("Deleted message ID:", messageId);
         setDeleteMsg(true)
         dispatch(delMessage(messageId));
         setOpenMenuId(null);
+
         setDeleteMsg(false)
+
+        console.log('mesage id id:', messageId)
     };
 
-
-    const now = new Date();
-
-
-
+    console.log('deleted ', delMsgId)
     return selectedUser ? (
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-lg">
             {/* Header */}
@@ -328,23 +331,25 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
 
                     const menuIsOpen = openMenuId === msg._id;
 
-                    const timestamp = msg.createdAt
+                    const timestamp: Date | null = msg.createdAt
                         ? new Date(msg.createdAt)
                         : null;
+                    //to get the total hours and minuts of sent messge
                     const now = new Date();
-                    const timeNow = now.getTime();
-                    console.log('time is is', timeNow)
-                    const timeMessage = new Date(msg.createdAt).getTime();
-                    const totalMinuts = (timeNow - timeMessage) / (1000 * 60)
-                    const totalHours = Math.floor(totalMinuts / 60)
-                    console.log('total hours', totalHours)
+                    const msgDate = new Date(timestamp)
+                    const timeDiffernce = now.getTime() - msgDate.getTime();
+                    const totalMin = timeDiffernce / (1000 * 60);
+                    const hours = totalMin / 60;
+                    const minutes = totalMin % 60
+
                     return (
+
                         <div
                             key={msg._id || index}
                             className={`flex items-end gap-2 md:gap-3 ${!isSender ? "flex-row-reverse" : ""
                                 }`}
                         >
-                            <p></p>
+
                             {/* Message bubble and its action menu */}
                             <div
                                 className={`group relative min-w-0 max-w-[75%] md:max-w-[60%] ${isSender ? "mr-2" : "ml-2"
@@ -359,6 +364,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                     {/* Display the saved message image.
                                         The edit preview belongs in the
                                         input area, not every message. */}
+
                                     {hasImage && (
                                         <Image
                                             src={msg.image}
@@ -370,17 +376,29 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                         />
                                     )}
 
-                                    {hasText && (
-                                        <p className="whitespace-pre-wrap break-words px-4 py-3 text-sm text-white md:text-base">
-                                            {msg.text}
-                                        </p>
-                                    )}
+
+                                    {
+                                        delMsgId === msg._id ? (<span className="text-white text-[30px]">Messasge has been deleted</span>) : hasText && (
+                                            <p className="whitespace-pre-wrap break-words px-4 py-3 text-sm text-white md:text-base">
+
+                                                <span>my mesage is{msg.text}</span>
+                                            </p>
+                                        )}
+
+                                    {/* {
+                                        hasText && (
+                                            <p className="whitespace-pre-wrap break-words px-4 py-3 text-sm text-white md:text-base">
+                                                {
+                                                    delMsgId === msg._id ? <span >Messasge has been deleted</span>
+                                                        : <span>{msg.text}</span>
+                                                }
+                                            </p>
+                                        )} */}
                                 </div>
 
-                                {/* Three-dot button: visible on hover
-                                    or keyboard focus, and stays visible
-                                    while its menu is open. */}
-                                {isSender && (
+                                {/* to show edit or delet when  hover the message */}
+
+                                {isSender && hours < 5 && (
                                     <div
                                         className={`absolute -right-3 top-0 z-20 ${menuIsOpen
                                             ? "visible opacity-100"
@@ -409,7 +427,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                         {menuIsOpen && (
                                             <div
                                                 role="menu"
-                                                className="absolute right-0 top-9 z-30 min-w-32 rounded-lg border border-gray-700 bg-gray-800 p-1 text-sm text-white shadow-xl"
+                                                className="absolute left-0 top-9 z-30 min-w-32 rounded-lg border border-gray-700 bg-gray-800 p-1 text-sm text-white shadow-xl"
                                             >
                                                 <button
                                                     type="button"
@@ -422,19 +440,18 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                                     Edit
                                                 </button>
 
-                                                {
-                                                    deleteMsg ? (<p>Mage ha deleted</p>) : (
-                                                        <button
-                                                            type="button"
-                                                            role="menuitem"
-                                                            onClick={() => handleDelMessage(msg._id)}
-                                                            className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
 
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    )
-                                                }
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={() =>
+                                                        handleDelMessage(msg._id)}
+                                                    className="w-full rounded-md px-3 py-2 text-left text-red-300 hover:bg-gray-700"
+
+                                                >
+                                                    Delete
+                                                </button>
+
                                             </div>
                                         )}
                                     </div>
@@ -464,9 +481,10 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                                 </span>
 
                             </div>
-                        </div>
-                    );
-                })}
+                        </div>)
+                }
+
+                )}
 
                 {/* Keep the scroll target inside the scrollable area. */}
                 <div ref={scrollEnd} />
@@ -616,7 +634,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }: Props) => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     ) : (
         <div className="hidden h-full flex-col items-center justify-center gap-5 rounded-lg bg-white/10 md:flex">
             <Image
